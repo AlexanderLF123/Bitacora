@@ -17,16 +17,48 @@ const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3050;
 let currentPort = DEFAULT_PORT;
 const DATA_FILE = path.join(__dirname, 'data', 'bitacora.json');
 
-// Normalizar estructura de datos (asegurar arrays válidos)
+// Filtrar elementos de prueba de fábrica antiguos
+function purgeDemoData(data) {
+  if (!data || typeof data !== 'object') return data;
+  const demoUsers = new Set(['carlos', 'marcos', 'juan', 'raul', 'pedro']);
+  const demoVehicles = new Set(['Unidad 01', 'Unidad 02', 'Nissan 2012', 'Volquete 01', 'Retroexcavadora 01']);
+  const demoRegIds = new Set(['reg-101', 'reg-102', 'reg-103', 'reg-104', 'reg-105']);
+
+  if (Array.isArray(data.usuarios)) {
+    data.usuarios = data.usuarios.filter(u => !demoUsers.has(String(u.usuario || '').toLowerCase()) || u.usuario === 'jushr');
+  }
+  if (Array.isArray(data.vehiculos)) {
+    data.vehiculos = data.vehiculos.filter(v => !demoVehicles.has(v.unidad) || (v.placa !== 'ABC-123' && v.placa !== 'XYZ-789' && v.placa !== 'MNO-456' && v.placa !== 'VOL-550' && v.placa !== 'RET-204'));
+  }
+  if (Array.isArray(data.registros)) {
+    data.registros = data.registros.filter(r => !demoRegIds.has(r.id) && !demoVehicles.has(r.unidad));
+  }
+  if (data.mantenimiento && typeof data.mantenimiento === 'object') {
+    demoVehicles.forEach(v => { delete data.mantenimiento[v]; });
+  }
+  return data;
+}
+
+// Normalizar estructura de datos (asegurar arrays válidos y sin datos demo)
 function normalizeData(raw) {
   if (!raw || typeof raw !== 'object') {
-    return { usuarios: [], vehiculos: [], mantenimiento: {}, registros: [] };
+    return {
+      apariencia: { logoUrl: 'assets/logo.png', loginBgUrl: 'assets/login-bg.png' },
+      usuarios: [{ id: 'u-admin', usuario: 'jushr', pass: 'jushr2026', nombre: 'Administrador JUSHMRCB', rol: 'admin', unidad: 'Todas', placa: 'Flota General' }],
+      vehiculos: [],
+      mantenimiento: {},
+      registros: []
+    };
   }
+  const clean = purgeDemoData(raw);
   return {
-    usuarios: Array.isArray(raw.usuarios) ? raw.usuarios : (raw.usuarios ? Object.values(raw.usuarios) : []),
-    vehiculos: Array.isArray(raw.vehiculos) ? raw.vehiculos : (raw.vehiculos ? Object.values(raw.vehiculos) : []),
-    mantenimiento: (raw.mantenimiento && typeof raw.mantenimiento === 'object') ? raw.mantenimiento : {},
-    registros: Array.isArray(raw.registros) ? raw.registros : (raw.registros ? Object.values(raw.registros) : [])
+    apariencia: clean.apariencia || { logoUrl: 'assets/logo.png', loginBgUrl: 'assets/login-bg.png' },
+    checklistItems: clean.checklistItems || [],
+    checklistMaquinaria: clean.checklistMaquinaria || [],
+    usuarios: Array.isArray(clean.usuarios) && clean.usuarios.length ? clean.usuarios : [{ id: 'u-admin', usuario: 'jushr', pass: 'jushr2026', nombre: 'Administrador JUSHMRCB', rol: 'admin', unidad: 'Todas', placa: 'Flota General' }],
+    vehiculos: Array.isArray(clean.vehiculos) ? clean.vehiculos : (clean.vehiculos ? Object.values(clean.vehiculos) : []),
+    mantenimiento: (clean.mantenimiento && typeof clean.mantenimiento === 'object') ? clean.mantenimiento : {},
+    registros: Array.isArray(clean.registros) ? clean.registros : (clean.registros ? Object.values(clean.registros) : [])
   };
 }
 
@@ -91,6 +123,12 @@ function initFirebase() {
       const remoteData = snapshot.val();
       if (remoteData) {
         db = normalizeData(remoteData);
+        // Si Firebase contenía registros o usuarios demo antiguos, limpiarlos en la nube
+        const rawStr = JSON.stringify(remoteData);
+        if (rawStr.includes('u-pedro') || rawStr.includes('ABC-123') || rawStr.includes('pedro castillo')) {
+          console.log('🧹 Datos de prueba detectados en Firebase: purgando automáticamente...');
+          bitacoraRef.set(db).catch(e => console.error('Error al purgar Firebase:', e.message));
+        }
       }
     });
 
@@ -441,40 +479,9 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { ok: true, apariencia: db.apariencia });
       }
 
-      // Sincronización y fusión de datos recuperados
+      // Sincronización (No-op para evitar reinyección de datos obsoletos)
       if (pathname === '/api/sync/merge' && req.method === 'POST') {
-        const payload = await parseJsonBody(req);
-        let changes = false;
-        if (Array.isArray(payload.registros)) {
-          payload.registros.forEach(r => {
-            if (!db.registros.some(x => x.id === r.id)) {
-              db.registros.unshift(r);
-              changes = true;
-            }
-          });
-        }
-        if (Array.isArray(payload.vehiculos)) {
-          payload.vehiculos.forEach(v => {
-            if (!db.vehiculos.some(x => x.unidad.toLowerCase() === v.unidad.toLowerCase())) {
-              db.vehiculos.push(v);
-              changes = true;
-            }
-          });
-        }
-        if (Array.isArray(payload.usuarios)) {
-          payload.usuarios.forEach(u => {
-            if (!db.usuarios.some(x => x.usuario.toLowerCase() === u.usuario.toLowerCase())) {
-              db.usuarios.push(u);
-              changes = true;
-            }
-          });
-        }
-        if (payload.mantenimiento) {
-          db.mantenimiento = { ...db.mantenimiento, ...payload.mantenimiento };
-          changes = true;
-        }
-        if (changes) saveData(db);
-        return sendJson(res, 200, { ok: true, registros: db.registros.length });
+        return sendJson(res, 200, { ok: true, message: 'Operación deshabilitada para proteger datos reales' });
       }
 
       // Backup & Restore

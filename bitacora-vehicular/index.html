@@ -1276,7 +1276,7 @@ const DEFAULT_CHECKLIST_MACHINERY = [
   "Horómetro operativo y tablero de instrumentos"
 ];
 
-// --- DATOS POR DEFECTO ---
+// --- DATOS POR DEFECTO (Vacíos para producción; solo cuenta Administrador) ---
 const DEFAULT_DATA = {
   apariencia: {
     logoUrl: "assets/logo.png",
@@ -1285,208 +1285,32 @@ const DEFAULT_DATA = {
   checklistItems: [...DEFAULT_CHECKLIST_VEHICLE],
   checklistMaquinaria: [...DEFAULT_CHECKLIST_MACHINERY],
   usuarios: [
-    { id: "u-admin", usuario: "jushr", pass: "jushr2026", nombre: "Administrador JUSHMRCB", rol: "admin", unidad: "Todas", placa: "Flota General" },
-    { id: "u-carlos", usuario: "carlos", pass: "123456", nombre: "Carlos Mendoza", rol: "driver", unidad: "Unidad 01", placa: "ABC-123" },
-    { id: "u-marcos", usuario: "marcos", pass: "123456", nombre: "Marcos Silva", rol: "driver", unidad: "Unidad 02", placa: "XYZ-789" },
-    { id: "u-juan", usuario: "juan", pass: "123456", nombre: "Juan Pérez", rol: "driver", unidad: "Nissan 2012", placa: "MNO-456" },
-    { id: "u-raul", usuario: "raul", pass: "123456", nombre: "Raúl Huamán (Operador)", rol: "driver", unidad: "Volquete 01", placa: "VOL-550" },
-    { id: "u-pedro", usuario: "pedro", pass: "123456", nombre: "Pedro Castillo (Operador)", rol: "driver", unidad: "Retroexcavadora 01", placa: "RET-204" }
+    { id: "u-admin", usuario: "jushr", pass: "jushr2026", nombre: "Administrador JUSHMRCB", rol: "admin", unidad: "Todas", placa: "Flota General" }
   ],
-  vehiculos: [
-    {
-      unidad: "Unidad 01",
-      categoria: "vehiculo",
-      placa: "ABC-123",
-      marca: "Toyota",
-      modelo: "Hilux 4x4",
-      combustibleTipo: "Diésel",
-      odometroInicial: 45000,
-      ultimoCambioAceiteFecha: "2026-10-15",
-      ultimoCambioAceiteKm: 41000,
-      intervaloAceiteKm: 5000,
-      proximoCambioAceiteKm: 46000,
-      tallerAceite: "Taller Central Autorizado",
-      tipoAceite: "15W-40 Sintético Diésel"
-    },
-    {
-      unidad: "Unidad 02",
-      categoria: "vehiculo",
-      placa: "XYZ-789",
-      marca: "Hyundai",
-      modelo: "H1 Van",
-      combustibleTipo: "Gasolina 95",
-      odometroInicial: 38200,
-      ultimoCambioAceiteFecha: "2026-08-10",
-      ultimoCambioAceiteKm: 33500,
-      intervaloAceiteKm: 5000,
-      proximoCambioAceiteKm: 38500,
-      tallerAceite: "Lubricentro Express Sur",
-      tipoAceite: "10W-30 Semi-sintético"
-    },
-    {
-      unidad: "Nissan 2012",
-      categoria: "vehiculo",
-      placa: "MNO-456",
-      marca: "Nissan",
-      modelo: "Frontier 2012",
-      combustibleTipo: "Diésel",
-      odometroInicial: 18700,
-      ultimoCambioAceiteFecha: "2026-07-22",
-      ultimoCambioAceiteKm: 15000,
-      intervaloAceiteKm: 5000,
-      proximoCambioAceiteKm: 20000,
-      tallerAceite: "Concesionario Oficial Nissan",
-      tipoAceite: "5W-30 Sintético"
-    },
-    {
-      unidad: "Volquete 01",
-      categoria: "maquinaria",
-      tipoMaquinaria: "Volquete",
-      placa: "VOL-550",
-      marca: "Volvo",
-      modelo: "FMX 440 (Tolva 15m3)",
-      combustibleTipo: "Diésel Pesado",
-      odometroInicial: 124500,
-      horometroInicial: 4850,
-      tipoMedicion: "km_horas",
-      ultimoCambioAceiteFecha: "2026-10-05",
-      ultimoCambioAceiteKm: 120000,
-      intervaloAceiteKm: 5000,
-      proximoCambioAceiteKm: 125000,
-      ultimoEngraseFecha: "2026-11-12",
-      tallerAceite: "Taller Pesado Minero",
-      tipoAceite: "15W-40 Mineral Pesado CI-4"
-    },
-    {
-      unidad: "Retroexcavadora 01",
-      categoria: "maquinaria",
-      tipoMaquinaria: "Retroexcavadora",
-      placa: "RET-204",
-      marca: "Caterpillar",
-      modelo: "420F2 4x4",
-      combustibleTipo: "Diésel Pesado",
-      odometroInicial: 0,
-      horometroInicial: 3250,
-      tipoMedicion: "horas",
-      ultimoCambioAceiteFecha: "2026-09-28",
-      ultimoCambioAceiteKm: 3000,
-      intervaloAceiteKm: 250,
-      proximoCambioAceiteKm: 3250,
-      ultimoEngraseFecha: "2026-11-15",
-      tallerAceite: "Distribuidor CAT Autorizado",
-      tipoAceite: "CAT DEO 15W-40"
-    }
-  ],
-  mantenimiento: {
-    "Unidad 01": { tipo: "Cambio de aceite (cada 5000 km)", proxKm: 46000, fechaLimite: "2026-12-15", taller: "Taller Central Autorizado", ultimoCambioFecha: "2026-10-15", ultimoCambioKm: 41000 },
-    "Unidad 02": { tipo: "Cambio de aceite (cada 5000 km)", proxKm: 38500, fechaLimite: "2026-11-25", taller: "Lubricentro Express Sur", ultimoCambioFecha: "2026-08-10", ultimoCambioKm: 33500 },
-    "Nissan 2012": { tipo: "Cambio de aceite (cada 5000 km)", proxKm: 20000, fechaLimite: "2027-01-20", taller: "Concesionario Oficial Nissan", ultimoCambioFecha: "2026-07-22", ultimoCambioKm: 15000 },
-    "Volquete 01": { tipo: "Mantenimiento Motor Pesado y Engrase Tolva", proxKm: 125000, fechaLimite: "2026-11-30", taller: "Taller Pesado Minero", ultimoCambioFecha: "2026-10-05", ultimoCambioKm: 120000 },
-    "Retroexcavadora 01": { tipo: "Mantenimiento 250 Hrs y Engrase de Articulaciones", proxKm: 3250, fechaLimite: "2026-11-20", taller: "Distribuidor CAT Autorizado", ultimoCambioFecha: "2026-09-28", ultimoCambioKm: 3000 }
-  },
-  registros: [
-    {
-      id: "reg-101",
-      uid: "u-carlos",
-      conductor: "Carlos Mendoza",
-      unidad: "Unidad 01",
-      placa: "ABC-123",
-      fecha: "2026-11-16",
-      salida: "08:15",
-      llegada: "13:30",
-      kmIni: 45050,
-      kmFin: 45180,
-      combustible: 4.5,
-      fallas: [],
-      destino: "Almacén Central - Sede Lima Norte",
-      obs: "Entrega de repuestos e insumos sin incidentes.",
-      creado: "2026-11-16T13:35:00.000Z"
-    },
-    {
-      id: "reg-102",
-      uid: "u-marcos",
-      conductor: "Marcos Silva",
-      unidad: "Unidad 02",
-      placa: "XYZ-789",
-      fecha: "2026-11-17",
-      salida: "09:00",
-      llegada: "15:45",
-      kmIni: 38220,
-      kmFin: 38395,
-      combustible: 6.0,
-      fallas: ["Luces (altas/bajas/direccionales/freno)"],
-      destino: "Supervisión de campo - Chorrillos y Villa El Salvador",
-      obs: "Foco posterior derecho parpadea intermitente.",
-      creado: "2026-11-17T15:50:00.000Z"
-    },
-    {
-      id: "reg-103",
-      uid: "u-juan",
-      conductor: "Juan Pérez",
-      unidad: "Nissan 2012",
-      placa: "MNO-456",
-      fecha: "2026-11-18",
-      salida: "07:30",
-      llegada: "12:10",
-      kmIni: 18750,
-      kmFin: 18880,
-      combustible: 3.8,
-      fallas: [],
-      destino: "Traslado de personal técnico a Planta Huachipa",
-      obs: "Tráfico fluido, retorno en horario previsto.",
-      creado: "2026-11-18T12:15:00.000Z"
-    },
-    {
-      id: "reg-104",
-      uid: "u-raul",
-      conductor: "Raúl Huamán (Operador)",
-      unidad: "Volquete 01",
-      placa: "VOL-550",
-      fecha: "2026-11-18",
-      salida: "07:00",
-      llegada: "16:30",
-      kmIni: 124500,
-      kmFin: 124620,
-      combustible: 18.5,
-      fallas: [],
-      destino: "Transporte de agregados de Cantera a Obra Puente Piedra",
-      obs: "8 viajes de material. Sistema de tolva operativo al 100%.",
-      creado: "2026-11-18T16:35:00.000Z"
-    },
-    {
-      id: "reg-105",
-      uid: "u-pedro",
-      conductor: "Pedro Castillo (Operador)",
-      unidad: "Retroexcavadora 01",
-      placa: "RET-204",
-      fecha: "2026-11-18",
-      salida: "08:00",
-      llegada: "17:00",
-      kmIni: 3250,
-      kmFin: 3258,
-      combustible: 12.0,
-      fallas: [],
-      destino: "Zanjado y movimiento de tierras en Sector 4",
-      obs: "8 horas de operación en horómetro. Engrase matutino realizado.",
-      creado: "2026-11-18T17:05:00.000Z"
-    }
-  ]
+  vehiculos: [],
+  mantenimiento: {},
+  registros: []
 };
 
 // --- ESTADO GLOBAL ---
 let state = {
   user: null,
   isApiMode: false,
-  data: { ...DEFAULT_DATA },
+  data: JSON.parse(JSON.stringify(DEFAULT_DATA)),
   currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
   selectedDay: null
 };
 
-// --- STORAGE ADAPTER CON RECUPERACIÓN AUTOMÁTICA DE DATOS ---
+// --- STORAGE ADAPTER (FUENTE DE VERDAD: SERVIDOR / FIREBASE) ---
 const STORAGE_KEY = "BITACORA_VEHICULAR_DB_V3";
 
 async function initStorage() {
-  // 1. Intentar cargar desde el servidor local (API) si está activo
+  // 1. Limpiar versiones anteriores de prueba de localStorage para evitar resurrección de datos demo
+  ["BITACORA_VEHICULAR_DB_V2", "BITACORA_VEHICULAR_DB", "BITACORA_VEHICULAR_DB_V1"].forEach(k => {
+    try { localStorage.removeItem(k); } catch (_) {}
+  });
+
+  // 2. Cargar directamente desde el Servidor / Firebase
   try {
     const res = await fetch("/api/data", { cache: "no-store" });
     if (res.ok) {
@@ -1498,124 +1322,54 @@ async function initStorage() {
     state.isApiMode = false;
   }
 
-  // 2. RECUPERAR CUALQUIER DATO PREVIO INGRESADO POR EL USUARIO EN LOCALSTORAGE
-  // (Escanea todas las versiones y claves posibles para que nunca se pierda nada)
-  const candidateKeys = [
-    "BITACORA_VEHICULAR_DB_V2",
-    "BITACORA_VEHICULAR_DB",
-    "BITACORA_VEHICULAR_DB_V1",
-    "BITACORA_VEHICULAR_DB_V3"
-  ];
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const k = localStorage.key(i);
-      if (k && k.startsWith("BITACORA_") && !candidateKeys.includes(k)) {
-        candidateKeys.push(k);
-      }
-    }
-  } catch(e) {}
-
-  let userRecords = [];
-  let userVehicles = [];
-  let userUsers = [];
-  let userMaint = {};
-
-  for (const k of candidateKeys) {
+  // 3. Modo Offline (solo si no hay servidor activo)
+  if (!state.isApiMode) {
     try {
-      const raw = localStorage.getItem(k);
+      const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) {
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed.registros)) {
-          parsed.registros.forEach(r => {
-            if (!userRecords.some(x => x.id === r.id)) {
-              userRecords.push(r);
-            }
-          });
-        }
-        if (Array.isArray(parsed.vehiculos)) {
-          parsed.vehiculos.forEach(v => {
-            if (!userVehicles.some(x => x.unidad.toLowerCase() === v.unidad.toLowerCase())) {
-              userVehicles.push(v);
-            }
-          });
-        }
-        if (Array.isArray(parsed.usuarios)) {
-          parsed.usuarios.forEach(u => {
-            if (!userUsers.some(x => x.usuario.toLowerCase() === u.usuario.toLowerCase())) {
-              userUsers.push(u);
-            }
-          });
-        }
-        if (parsed.mantenimiento) {
-          userMaint = { ...userMaint, ...parsed.mantenimiento };
-        }
+        state.data = JSON.parse(raw);
       }
-    } catch (e) {}
+    } catch (_) {}
   }
 
   if (!state.data || !state.data.registros) {
-    state.data = { ...DEFAULT_DATA };
+    state.data = JSON.parse(JSON.stringify(DEFAULT_DATA));
   }
 
-  // FUSIONAR: Incorporar todos los registros previamente guardados
-  if (userRecords.length > 0) {
-    userRecords.forEach(r => {
-      if (!state.data.registros.some(x => x.id === r.id)) {
-        state.data.registros.unshift(r);
-      }
+  // Asegurar estructura
+  if (!Array.isArray(state.data.usuarios)) state.data.usuarios = [];
+  if (!Array.isArray(state.data.vehiculos)) state.data.vehiculos = [];
+  if (!Array.isArray(state.data.registros)) state.data.registros = [];
+  if (!state.data.mantenimiento) state.data.mantenimiento = {};
+
+  // Filtrar posibles datos demo residuales en cliente
+  const demoUsers = new Set(['carlos', 'marcos', 'juan', 'raul', 'pedro']);
+  const demoVehicles = new Set(['Unidad 01', 'Unidad 02', 'Nissan 2012', 'Volquete 01', 'Retroexcavadora 01']);
+  state.data.usuarios = state.data.usuarios.filter(u => !demoUsers.has(String(u.usuario || '').toLowerCase()) || u.usuario === 'jushr');
+  state.data.vehiculos = state.data.vehiculos.filter(v => !demoVehicles.has(v.unidad) || (v.placa !== 'ABC-123' && v.placa !== 'XYZ-789' && v.placa !== 'MNO-456' && v.placa !== 'VOL-550' && v.placa !== 'RET-204'));
+  state.data.registros = state.data.registros.filter(r => !['reg-101','reg-102','reg-103','reg-104','reg-105'].includes(r.id));
+
+  // Asegurar siempre el Administrador principal
+  let adminUser = state.data.usuarios.find(u => u.usuario === 'jushr');
+  if (!adminUser) {
+    state.data.usuarios.unshift({
+      id: "u-admin",
+      usuario: "jushr",
+      pass: "jushr2026",
+      nombre: "Administrador JUSHMRCB",
+      rol: "admin",
+      unidad: "Todas",
+      placa: "Flota General"
     });
-  }
-
-  // FUSIONAR VEHÍCULOS / MAQUINARIA
-  if (userVehicles.length > 0) {
-    userVehicles.forEach(v => {
-      const idx = state.data.vehiculos.findIndex(x => x.unidad.toLowerCase() === v.unidad.toLowerCase());
-      if (idx === -1) {
-        state.data.vehiculos.push(v);
-      } else {
-        state.data.vehiculos[idx] = { ...v, ...state.data.vehiculos[idx] };
-      }
-    });
-  }
-
-  // FUSIONAR USUARIOS
-  if (userUsers.length > 0) {
-    userUsers.forEach(u => {
-      if (!state.data.usuarios.some(x => x.usuario.toLowerCase() === u.usuario.toLowerCase())) {
-        state.data.usuarios.push(u);
-      }
-    });
-  }
-
-  // FUSIONAR MANTENIMIENTO
-  state.data.mantenimiento = { ...(state.data.mantenimiento || {}), ...userMaint };
-
-  // Sincronizar hacia el servidor si está activo
-  if (state.isApiMode) {
-    try {
-      fetch("/api/sync/merge", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          registros: state.data.registros,
-          vehiculos: state.data.vehiculos,
-          usuarios: state.data.usuarios,
-          mantenimiento: state.data.mantenimiento
-        })
-      }).catch(() => {});
-    } catch(e) {}
-  }
-
-  // Guardar datos consolidados en todas las claves de localStorage
-  const fullJson = JSON.stringify(state.data);
-  candidateKeys.forEach(k => {
-    try { localStorage.setItem(k, fullJson); } catch(e) {}
-  });
-
-  const adminUser = (state.data.usuarios || []).find(u => u.usuario === 'jushr');
-  if (adminUser) {
+  } else {
     adminUser.nombre = "Administrador JUSHMRCB";
   }
+
+  // Guardar estado limpio en localStorage
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+  } catch (_) {}
+
   applyAppearance();
 }
 
