@@ -1,0 +1,17 @@
+{
+  "name": "bitacora-vehicular",
+  "version": "2.0.0",
+  "description": "Sistema de Bitácora Vehicular y Control de Salidas, Mantenimiento y Combustible",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "bitacora",
+    "vehicular",
+    "control-flota",
+    "mantenimiento"
+  ],
+  "author": "Google DeepMind - Antigravity",
+  "license": "MIT"
+}

@@ -1,0 +1,3198 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#1B2B4B">
+<title>Bitácora Vehicular y Maquinaria Pesada</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<!-- SheetJS para exportación profesional a Excel -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --navy: #1B2B4B;
+  --navy-light: #243a65;
+  --navy-dark: #101c33;
+  --ink: #16202f;
+  --bg: #EEF2F7;
+  --card: #ffffff;
+  --line: #D8DFEB;
+  --line-focus: #2E6FD9;
+  --mut: #5e6d87;
+  --amber: #E68A00;
+  --amber-light: #FFF4E5;
+  --bad: #D32F2F;
+  --bad-light: #FDE8E8;
+  --ok: #2E7D32;
+  --ok-light: #E8F5E9;
+  --blue: #1D4ED8;
+  --blue-light: #EFF6FF;
+  --machinery: #D97706;
+  --machinery-light: #FEF3C7;
+  --oil: #B45309;
+  --oil-light: #FEF3C7;
+  --radius: 10px;
+  --shadow: 0 4px 18px rgba(27, 43, 75, 0.08);
+  --shadow-lg: 0 12px 32px rgba(27, 43, 75, 0.16);
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font: 14px/1.5 'Barlow', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+}
+[hidden] { display: none !important; }
+button, input, select, textarea { font: inherit; }
+:focus-visible { outline: 3px solid var(--amber); outline-offset: 2px; }
+
+/* Contenedor Login con Fondo Personalizable */
+#login {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  position: relative;
+  background-image: var(--login-bg, url('assets/login-bg.png'));
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-color: #1B2B4B;
+}
+#login::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(27, 43, 75, 0.78) 0%, rgba(16, 28, 51, 0.94) 100%);
+  z-index: 1;
+}
+.login-box {
+  background: var(--card);
+  border-radius: 16px;
+  padding: 34px 30px;
+  width: min(430px, 100%);
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 2;
+}
+.login-logo-container {
+  text-align: center;
+  margin-bottom: 12px;
+}
+.login-logo-img {
+  max-height: 90px;
+  max-width: 240px;
+  object-fit: contain;
+  margin: 0 auto 10px;
+  display: block;
+  border-radius: 6px;
+}
+.login-logo-fallback {
+  font-size: 38px;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.login-box h1 {
+  margin: 0 0 4px;
+  font-size: 23px;
+  color: var(--navy);
+  text-align: center;
+  font-weight: 700;
+}
+.login-box p {
+  margin: 0 0 16px;
+  color: var(--mut);
+  text-align: center;
+  font-size: 13px;
+}
+.quick-login {
+  background: #f4f6fa;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 16px;
+  border: 1px dashed var(--line);
+}
+.quick-login small {
+  display: block;
+  font-weight: 600;
+  color: var(--mut);
+  margin-bottom: 6px;
+}
+.quick-badges {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.btn-quick {
+  background: #fff;
+  border: 1px solid var(--line);
+  padding: 4px 8px;
+  font-size: 11.5px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--navy);
+  font-weight: 500;
+}
+.btn-quick:hover {
+  background: var(--navy);
+  color: #fff;
+  border-color: var(--navy);
+}
+
+/* Header de la Aplicación */
+header {
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.brand-logo-img {
+  max-height: 46px;
+  max-width: 140px;
+  object-fit: contain;
+  background: #ffffff;
+  padding: 3px 6px;
+  border-radius: 8px;
+  display: block;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.18);
+}
+.brand-icon-fallback {
+  font-size: 28px;
+}
+.brand-title h1 {
+  margin: 0;
+  font-size: 19px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+}
+.brand-title small {
+  opacity: 0.84;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.brand-title .user-role {
+  background: rgba(255,255,255,0.22);
+  padding: 1px 7px;
+  border-radius: 99px;
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.header-tools {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* Botones */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 0;
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-weight: 600;
+  font-size: 13.5px;
+  cursor: pointer;
+  background: var(--navy);
+  color: #fff;
+  transition: background 0.15s, transform 0.05s;
+}
+.btn:hover { background: var(--navy-light); }
+.btn:active { transform: translateY(1px); }
+.btn.alt {
+  background: #fff;
+  color: var(--navy);
+  border: 1px solid var(--line);
+}
+.btn.alt:hover { background: #f7f9fc; }
+.btn.header-btn {
+  background: rgba(255,255,255,0.15);
+  color: #fff;
+}
+.btn.header-btn:hover { background: rgba(255,255,255,0.28); }
+.btn.warn {
+  background: var(--bad-light);
+  color: var(--bad);
+  border: 1px solid #ffcdd2;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.btn.warn:hover { background: var(--bad); color: #fff; }
+.btn.edit {
+  background: var(--blue-light);
+  color: var(--blue);
+  border: 1px solid #bbdefb;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.btn.edit:hover { background: var(--blue); color: #fff; }
+.btn.oil-btn {
+  background: var(--oil-light);
+  color: var(--oil);
+  border: 1px solid #fde68a;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.btn.oil-btn:hover { background: var(--oil); color: #fff; }
+.btn.machinery-btn {
+  background: var(--machinery-light);
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+.btn.machinery-btn:hover { background: #d97706; color: #fff; }
+.btn.success {
+  background: var(--ok);
+  color: #fff;
+}
+.btn.success:hover { background: #256628; }
+
+/* Navegación y Pestañas */
+main {
+  max-width: 1340px;
+  margin: 0 auto;
+  padding: 20px 18px 40px;
+}
+.tabs-bar {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+  border-bottom: 2px solid var(--line);
+  padding-bottom: 10px;
+}
+.tab-btn {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--mut);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s;
+}
+.tab-btn:hover { color: var(--navy); background: rgba(27, 43, 75, 0.05); }
+.tab-btn.active {
+  background: var(--navy);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(27, 43, 75, 0.2);
+}
+
+/* Tarjetas y Formularios */
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 14px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #edf1f7;
+}
+.card-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--navy);
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+}
+label {
+  display: block;
+  font-weight: 600;
+  font-size: 13px;
+  margin: 10px 0 5px;
+  color: #334155;
+}
+input, select, textarea {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fff;
+  font-size: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+input:focus, select:focus, textarea:focus {
+  border-color: var(--line-focus);
+  box-shadow: 0 0 0 3px rgba(46, 111, 217, 0.15);
+  outline: none;
+}
+
+/* KPIs de Resumen */
+.kpis-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  margin-bottom: 20px;
+}
+.kpi-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-left-width: 6px;
+  border-radius: 12px;
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+}
+.kpi-title {
+  color: var(--mut);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.kpi-value {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--navy);
+  margin: 4px 0 2px;
+  letter-spacing: -0.5px;
+}
+.kpi-sub {
+  font-size: 12.5px;
+  color: var(--mut);
+}
+
+/* Alertas de Mantenimiento y Aceite */
+.alert-banner {
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 13.5px;
+}
+.alert-banner.bad { background: var(--bad-light); color: var(--bad); border: 1px solid #ffcdd2; }
+.alert-banner.warn { background: var(--amber-light); color: #8a4b00; border: 1px solid #ffe0b2; }
+.alert-banner.ok { background: var(--ok-light); color: var(--ok); border: 1px solid #c8e6c9; }
+
+/* Control de Aceite 5000 km y Maquinaria Pesada */
+.oil-box {
+  background: #fffdf5;
+  border: 1px solid #fde68a;
+  border-radius: 10px;
+  padding: 14px;
+  margin: 12px 0;
+}
+.oil-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #92400e;
+  margin-bottom: 6px;
+}
+.progress-container {
+  background: #e2e8f0;
+  border-radius: 99px;
+  height: 9px;
+  width: 100%;
+  overflow: hidden;
+  margin: 6px 0;
+}
+.progress-bar {
+  height: 100%;
+  transition: width 0.3s;
+  border-radius: 99px;
+}
+.progress-bar.ok { background: #16a34a; }
+.progress-bar.warn { background: #eab308; }
+.progress-bar.bad { background: #dc2626; }
+
+/* Tabla de Registros */
+.table-wrap {
+  overflow-x: auto;
+  border-radius: 8px;
+  border: 1px solid var(--line);
+}
+table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 960px;
+  background: #fff;
+}
+th, td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: middle;
+}
+th {
+  position: sticky;
+  top: 0;
+  background: #f8fafc;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--mut);
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+tr:hover td { background: #f9fbfd; }
+td.n {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.chip {
+  display: inline-block;
+  border-radius: 99px;
+  padding: 2px 10px;
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+}
+.chip.blue-vehicle {
+  background: #2563EB !important;
+}
+.chip.machinery {
+  background: #D97706 !important;
+}
+.category-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.category-badge.vehicle {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+}
+.category-badge.machinery {
+  background: #fffbeb;
+  color: #b45309;
+  border: 1px solid #fde68a;
+}
+.badge-diff {
+  background: #eef2f7;
+  color: var(--navy);
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 13px;
+}
+.falla-badge {
+  display: inline-block;
+  background: var(--bad-light);
+  color: var(--bad);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-top: 4px;
+}
+.empty-state {
+  padding: 40px;
+  text-align: center;
+  color: var(--mut);
+  font-size: 15px;
+}
+
+/* Checklist vehicular */
+.checklist-container {
+  background: #f8fafc;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0 16px;
+}
+.checklist-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.checklist-header span {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--navy);
+}
+.chk-grid {
+  display: grid;
+  gap: 8px 14px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+}
+.chk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  user-select: none;
+}
+.chk-item input {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--navy);
+  cursor: pointer;
+}
+
+/* Calendario */
+.cal-header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 14px;
+}
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.cal-weekday {
+  font-weight: 700;
+  font-size: 12px;
+  color: var(--mut);
+  text-align: center;
+  padding-bottom: 4px;
+}
+.cal-day {
+  min-height: 80px;
+  border: 1px solid var(--line);
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px;
+  cursor: pointer;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  transition: all 0.12s;
+}
+.cal-day:hover { border-color: var(--navy); background: #fcfdfe; }
+.cal-day.today { border: 2px solid var(--amber); }
+.cal-day.selected { background: #eef4ff; border-color: var(--navy); }
+.cal-day-num {
+  font-weight: 700;
+  font-size: 13px;
+  color: #334155;
+}
+.cal-day-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.cal-chip {
+  font-size: 10.5px;
+  color: #fff;
+  font-weight: 600;
+  padding: 1px 5px;
+  border-radius: 4px;
+  white-space: nowrap;
+}
+
+/* Modales */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(16, 28, 51, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+.modal-box {
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  width: min(640px, 100%);
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+
+/* Toast */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: 600;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+  z-index: 2000;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s, transform 0.25s;
+}
+#toast.show {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(-50%) translateY(-4px);
+}
+
+/* Mensajes de error */
+.err-msg {
+  color: var(--bad);
+  font-weight: 600;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+/* Impresión */
+@media print {
+  header, .noprint, #toast, .tabs-bar, .checklist-header button { display: none !important; }
+  body { background: #fff; font-size: 12px; }
+  main { max-width: 100%; padding: 0; }
+  .card { border: none; box-shadow: none; padding: 0; margin-bottom: 20px; }
+  table { min-width: 100%; font-size: 11px; }
+  th, td { padding: 6px 8px; }
+  .print-header { display: block !important; margin-bottom: 14px; border-bottom: 2px solid #000; padding-bottom: 6px; }
+}
+.print-header { display: none; }
+</style>
+</head>
+<body>
+
+<!-- PANTALLA DE LOGIN CON FONDO PERSONALIZABLE -->
+<section id="login">
+  <div class="login-box">
+    <div class="login-logo-container">
+      <img id="loginLogoImg" class="login-logo-img" alt="Logo de la Empresa" src="assets/logo.png" onerror="this.style.display='none'; $('#loginLogoFallback').style.display='block';">
+      <div id="loginLogoFallback" class="login-logo-fallback" style="display:none">🚐</div>
+    </div>
+    <h1>Bitácora Vehicular</h1>
+    <p>JUSHMRCB · Control de vehículos y maquinaria pesada</p>
+
+    <div class="quick-login">
+      <small>Acceso rápido de prueba:</small>
+      <div class="quick-badges">
+        <button type="button" class="btn-quick" data-user="jushr" data-pass="jushr2026">👑 Admin: JUSHMRCB</button>
+        <button type="button" class="btn-quick" data-user="carlos" data-pass="123456">🚙 Carlos (U1)</button>
+        <button type="button" class="btn-quick" data-user="juan" data-pass="123456">🚙 Juan (Nissan 2012)</button>
+        <button type="button" class="btn-quick" data-user="raul" data-pass="123456">🚚 Raúl (Volquete)</button>
+        <button type="button" class="btn-quick" data-user="pedro" data-pass="123456">🚜 Pedro (Retroexc.)</button>
+      </div>
+    </div>
+
+    <form id="loginForm">
+      <label for="loginUser">Usuario</label>
+      <input id="loginUser" placeholder="ej. jushr" autocomplete="username" required autofocus>
+
+      <label for="loginPass">Contraseña</label>
+      <input id="loginPass" type="password" placeholder="••••••••" autocomplete="current-password" required>
+
+      <button type="submit" class="btn" style="width:100%;margin-top:16px;padding:12px;font-size:15px">
+        Iniciar Sesión
+      </button>
+      <div class="err-msg" id="loginErr" role="alert"></div>
+    </form>
+  </div>
+</section>
+
+<!-- APLICACIÓN PRINCIPAL -->
+<div id="app" hidden>
+  <header>
+    <div class="brand">
+      <!-- LOGO PRINCIPAL AL LADO DE BITÁCORA VEHICULAR -->
+      <img id="headerLogoImg" class="brand-logo-img" alt="Logo Principal" src="assets/logo.png" onerror="this.style.display='none'; $('#headerIconFallback').style.display='block';">
+      <div id="headerIconFallback" class="brand-icon-fallback" style="display:none">🚐</div>
+
+      <div class="brand-title">
+        <h1>Bitácora Vehicular</h1>
+        <small id="userBadge"></small>
+      </div>
+    </div>
+    <div class="header-tools noprint">
+      <button class="btn header-btn" id="btnExportXls" title="Descargar reporte completo en Excel">📥 Excel</button>
+      <button class="btn header-btn" id="btnExportCsv" title="Descargar archivo CSV">📄 CSV</button>
+      <button class="btn header-btn" id="btnBackup" title="Copia de seguridad y restauración de datos">💾 Respaldo</button>
+      <button class="btn header-btn" id="btnPrint" title="Imprimir hoja de control">🖨️ Imprimir</button>
+      <button class="btn header-btn" id="btnLogout" title="Cerrar sesión actual">🚪 Salir</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Encabezado para impresión -->
+    <div class="print-header">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+        <img id="printLogoImg" src="assets/logo.png" style="max-height:48px;object-fit:contain" onerror="this.style.display='none'">
+        <div>
+          <h2 style="margin:0 0 2px">REPORTE OFICIAL DE BITÁCORA VEHICULAR Y MAQUINARIA PESADA</h2>
+          <div id="printMeta" style="font-size:12px;color:#444"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pestañas de Navegación -->
+    <nav class="tabs-bar noprint" id="navTabs">
+      <button class="tab-btn active" data-tab="tabRegistros">📋 Registros de Salida</button>
+      <button class="tab-btn" data-tab="tabCalendario">📅 Calendario</button>
+      <button class="tab-btn" data-tab="tabMantenimiento">🔧 Mantenimiento & Aceite (5K / Horas)</button>
+      <button class="tab-btn" data-tab="tabVehiculos" id="tabNavVehiculos" hidden>🚗 Flota & Maquinaria</button>
+      <button class="tab-btn" data-tab="tabUsuarios" id="tabNavUsuarios" hidden>👥 Conductores & Operadores</button>
+    </nav>
+
+    <!-- Alertas activas de mantenimiento y cambio de aceite -->
+    <div id="maintenanceAlerts"></div>
+
+    <!-- PESTAÑA 1: REGISTROS -->
+    <div id="tabRegistros">
+      <div class="card noprint" id="formSalidaCard">
+        <div class="card-header">
+          <h2>➕ Nueva Salida / Comisión de Trabajo</h2>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span id="unitTypeBadge" class="category-badge vehicle">🚙 Vehículo</span>
+            <span id="currentOdoBadge" style="font-size:13px;font-weight:600;color:var(--navy);background:#e6edfa;padding:4px 10px;border-radius:6px"></span>
+          </div>
+        </div>
+        <form id="regForm">
+          <div class="grid">
+            <div id="divSelectUnidad" hidden>
+              <label for="formUnidad">Unidad / Maquinaria</label>
+              <select id="formUnidad"></select>
+            </div>
+            <div>
+              <label for="formFecha">Fecha de salida / labor</label>
+              <input id="formFecha" type="date" required>
+            </div>
+            <div>
+              <label for="formSalida">Hora de inicio / salida</label>
+              <input id="formSalida" type="time" required>
+            </div>
+            <div>
+              <label for="formLlegada">Hora de retorno / fin</label>
+              <input id="formLlegada" type="time" required>
+            </div>
+            <div>
+              <label for="formKmIni" id="labelKmIni">Km inicial (o Horómetro)</label>
+              <input id="formKmIni" type="number" min="0" step="1" required>
+            </div>
+            <div>
+              <label for="formKmFin" id="labelKmFin">Km final (o Horómetro)</label>
+              <input id="formKmFin" type="number" min="0" step="1" required>
+            </div>
+            <div>
+              <label for="formComb">Combustible cargado (galones)</label>
+              <input id="formComb" type="number" min="0" step="0.1" placeholder="0.0">
+            </div>
+          </div>
+
+          <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <span id="calcDiffBadge" style="font-weight:700;font-size:14px;color:var(--navy)"></span>
+            <span id="calcRendimientoBadge" style="font-weight:600;font-size:13px;color:var(--ok)"></span>
+          </div>
+
+          <!-- Checklist de Inspección 360 adaptado para Vehículos y Maquinaria -->
+          <div class="checklist-container">
+            <div class="checklist-header">
+              <span id="chkTitleLabel">🔍 Revisión Pre-Operacional del Equipo (marca lo que falle o esté pendiente)</span>
+              <div style="display:flex;gap:6px;align-items:center">
+                <button type="button" class="btn alt" id="btnChkAllOk" style="padding:2px 8px;font-size:11.5px">Todo Conforme ✔️</button>
+                <button type="button" class="btn alt" id="btnOpenConfigChk" style="padding:2px 8px;font-size:11.5px" title="Modificar o agregar puntos de revisión">⚙️ Editar Puntos de Revisión</button>
+              </div>
+            </div>
+            <div class="chk-grid" id="chkContainer"></div>
+          </div>
+
+          <div class="grid" style="grid-template-columns: 1fr 1fr;">
+            <div>
+              <label for="formDestino">Destino / Frente de Obra / Comisión</label>
+              <input id="formDestino" placeholder="ej. Traslado a Planta Central, Obra Sector 4..." required>
+            </div>
+            <div>
+              <label for="formObs">Observaciones o Incidencias</label>
+              <input id="formObs" placeholder="ej. Tolva sin fugas, viaje con agregados...">
+            </div>
+          </div>
+
+          <div style="margin-top:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+            <button type="submit" class="btn success" style="padding:10px 20px">
+              💾 Guardar Registro de Salida / Parte Diario
+            </button>
+            <span class="err-msg" id="formErr" role="alert"></span>
+          </div>
+        </form>
+      </div>
+
+      <!-- KPIs para Administrador -->
+      <div id="adminKpisContainer" class="kpis-grid" hidden></div>
+
+      <!-- Filtros y Búsqueda -->
+      <div class="card noprint">
+        <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));">
+          <div>
+            <label for="filterSearch">🔍 Búsqueda rápida</label>
+            <input id="filterSearch" placeholder="Buscar destino, conductor, placa...">
+          </div>
+          <div>
+            <label for="filterCategoria">Tipo de Equipo</label>
+            <select id="filterCategoria">
+              <option value="">Todos los equipos</option>
+              <option value="vehiculo">Solo Vehículos Livianos</option>
+              <option value="maquinaria">Solo Maquinaria Pesada</option>
+            </select>
+          </div>
+          <div>
+            <label for="filterUnidad">Filtrar por Unidad</label>
+            <select id="filterUnidad">
+              <option value="">Todas las unidades</option>
+            </select>
+          </div>
+          <div>
+            <label for="filterDesde">Desde (Fecha)</label>
+            <input id="filterDesde" type="date">
+          </div>
+          <div>
+            <label for="filterHasta">Hasta (Fecha)</label>
+            <input id="filterHasta" type="date">
+          </div>
+          <div style="align-self:end">
+            <button class="btn alt" id="btnClearFilters" style="width:100%">Limpiar Filtros</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla de Registros -->
+      <div class="card">
+        <div class="card-header">
+          <h2 id="tableTitle">📋 Bitácora de Salidas y Partes Diarios</h2>
+          <span id="filteredCountBadge" style="font-size:13px;font-weight:600;color:var(--mut)"></span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+                <th>Unidad</th>
+                <th>Conductor / Operador</th>
+                <th>Salida – Llegada</th>
+                <th style="text-align:right">Inicial</th>
+                <th style="text-align:right">Final</th>
+                <th style="text-align:right">Recorrido / Horas</th>
+                <th style="text-align:right">Combustible</th>
+                <th>Destino / Frente de Obra</th>
+                <th>Observaciones / Inspección</th>
+                <th class="noprint" style="text-align:center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="rowsContainer"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 2: CALENDARIO -->
+    <div id="tabCalendario" hidden>
+      <div class="card">
+        <div class="cal-header noprint">
+          <button class="btn alt" id="calPrevMonth">◀ Mes anterior</button>
+          <h2 id="calMonthLabel" style="margin:0;font-size:18px;min-width:200px;text-align:center;text-transform:capitalize"></h2>
+          <button class="btn alt" id="calNextMonth">Mes siguiente ▶</button>
+          <button class="btn alt" id="calToday">Hoy</button>
+          <span style="font-size:13px;color:var(--mut);margin-left:auto">Haz clic en un día para filtrar salidas</span>
+        </div>
+        <div id="calendarMount"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 3: MANTENIMIENTO DIFERENCIADO (VEHÍCULOS Y MAQUINARIA) -->
+    <div id="tabMantenimiento" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2>🔧 Control de Mantenimiento Diferenciado</h2>
+          <div style="display:flex;gap:8px">
+            <span class="category-badge vehicle">🚙 Vehículos: Aceite 5K</span>
+            <span class="category-badge machinery">🚜 Maquinaria: Aceite, Engrase & Hidráulico</span>
+          </div>
+        </div>
+        <div class="grid" id="mantenimientoCardsContainer" style="grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));"></div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 4: VEHÍCULOS Y MAQUINARIA (ADMIN) -->
+    <div id="tabVehiculos" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2>🚗 Flota de Vehículos y Maquinaria Pesada</h2>
+          <button class="btn success" id="btnNewVehicle">➕ Nuevo Equipo</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Unidad</th>
+                <th>Categoría</th>
+                <th>Placa</th>
+                <th>Marca / Modelo</th>
+                <th style="text-align:right">Odómetro / Horómetro</th>
+                <th>Último Cambio de Aceite</th>
+                <th>Próximo Servicio</th>
+                <th style="text-align:center" class="noprint">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="vehiculosTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- PESTAÑA 5: USUARIOS & CONDUCTORES (ADMIN) -->
+    <div id="tabUsuarios" hidden>
+      <div class="card">
+        <div class="card-header">
+          <h2>👥 Gestión de Conductores y Operadores de Maquinaria</h2>
+          <button class="btn success" id="btnNewUser">➕ Registrar Conductor / Operador</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Usuario</th>
+                <th>Nombre Completo</th>
+                <th>Rol</th>
+                <th>Unidad Asignada</th>
+                <th>Placa</th>
+                <th style="text-align:center" class="noprint">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="usuariosTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL: EDITAR REGISTRO -->
+<div class="modal-overlay" id="modalEditReg" hidden>
+  <div class="modal-box">
+    <div class="card-header">
+      <h2 id="modalRegTitle">Editar Registro de Salida</h2>
+      <button class="btn alt" type="button" onclick="closeModal('modalEditReg')">✕</button>
+    </div>
+    <form id="modalRegForm">
+      <input type="hidden" id="editRegId">
+      <div class="grid">
+        <div>
+          <label for="editFecha">Fecha</label>
+          <input id="editFecha" type="date" required>
+        </div>
+        <div>
+          <label for="editUnidad">Unidad / Maquinaria</label>
+          <select id="editUnidad" required></select>
+        </div>
+        <div>
+          <label for="editSalida">Hora Salida</label>
+          <input id="editSalida" type="time" required>
+        </div>
+        <div>
+          <label for="editLlegada">Hora Llegada</label>
+          <input id="editLlegada" type="time" required>
+        </div>
+        <div>
+          <label for="editKmIni">Inicial (Km/Hrs)</label>
+          <input id="editKmIni" type="number" min="0" required>
+        </div>
+        <div>
+          <label for="editKmFin">Final (Km/Hrs)</label>
+          <input id="editKmFin" type="number" min="0" required>
+        </div>
+        <div>
+          <label for="editComb">Combustible (gal)</label>
+          <input id="editComb" type="number" min="0" step="0.1">
+        </div>
+      </div>
+
+      <div class="checklist-container" style="margin-top:14px">
+        <div class="checklist-header">
+          <span>🔍 Revisión Pre-Operacional (Marca las fallas detectadas)</span>
+          <button type="button" class="btn alt" id="btnEditChkAllOk" style="padding:2px 8px;font-size:11.5px">Sin Fallas (Conforme) ✔️</button>
+        </div>
+        <div class="chk-grid" id="modalEditChkContainer"></div>
+      </div>
+
+      <div>
+        <label for="editDestino">Destino o Frente de Obra</label>
+        <input id="editDestino" required>
+      </div>
+      <div>
+        <label for="editObs">Observaciones</label>
+        <textarea id="editObs" rows="2"></textarea>
+      </div>
+      <div style="margin-top:16px;display:flex;justify-content:flex-end;gap:10px">
+        <button type="button" class="btn alt" onclick="closeModal('modalEditReg')">Cancelar</button>
+        <button type="submit" class="btn success">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: REGISTRAR CAMBIO DE ACEITE Y MANTENIMIENTO -->
+<div class="modal-overlay" id="modalCambioAceite" hidden>
+  <div class="modal-box">
+    <div class="card-header">
+      <h2 id="modalMaintTitle">🛢️ Registrar Mantenimiento de Equipo</h2>
+      <button class="btn alt" type="button" onclick="closeModal('modalCambioAceite')">✕</button>
+    </div>
+    <form id="modalCambioAceiteForm">
+      <div class="grid">
+        <div>
+          <label for="oilUnidad">Unidad / Maquinaria</label>
+          <select id="oilUnidad" required></select>
+        </div>
+        <div>
+          <label for="oilFecha">Fecha Realizada</label>
+          <input id="oilFecha" type="date" required>
+        </div>
+        <div>
+          <label for="oilKm" id="labelOilKm">Kilometraje / Horas al Realizar</label>
+          <input id="oilKm" type="number" min="0" required>
+        </div>
+        <div>
+          <label for="oilProxKm" id="labelOilProxKm">Próximo Servicio Automático</label>
+          <input id="oilProxKm" type="number" readonly style="background:#f1f5f9;font-weight:700">
+        </div>
+      </div>
+      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6px">
+        <div>
+          <label for="oilTipo">Tipo de Servicio / Lubricante</label>
+          <input id="oilTipo" placeholder="ej. 15W-40 Sintético, Engrase general..." required>
+        </div>
+        <div>
+          <label for="oilTaller">Taller / Proveedor / Mecánico</label>
+          <input id="oilTaller" placeholder="ej. Taller Central Autorizado">
+        </div>
+      </div>
+      <div>
+        <label for="oilNotas">Observaciones (Filtros cambiados, lubricación de tolva/brazo, costo)</label>
+        <textarea id="oilNotas" rows="2" placeholder="ej. Filtro primario y secundario cambiados. Revisión de fugas ok."></textarea>
+      </div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px">
+        <button type="button" class="btn alt" onclick="closeModal('modalCambioAceite')">Cancelar</button>
+        <button type="submit" class="btn success">💾 Guardar Servicio</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: CONFIGURAR PUNTOS DE INSPECCIÓN PRE-OPERACIONAL -->
+<div class="modal-overlay" id="modalConfigChecklist" hidden>
+  <div class="modal-box">
+    <div class="card-header">
+      <h2>⚙️ Puntos de Inspección Pre-Operacional</h2>
+      <button class="btn alt" type="button" onclick="closeModal('modalConfigChecklist')">✕</button>
+    </div>
+    <p style="color:var(--mut);font-size:13px">
+      Gestiona los puntos que los conductores y operadores verifican antes de iniciar la faena.
+    </p>
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      <input id="inputNewChkItem" placeholder="Nuevo punto (ej. Alarma de retroceso, fuga hidráulica)...">
+      <button class="btn success" type="button" id="btnAddChkItem">➕ Agregar</button>
+    </div>
+    <div id="configChkListContainer" style="display:flex;flex-direction:column;gap:8px;max-height:280px;overflow-y:auto;padding-right:4px"></div>
+    <div style="margin-top:18px;display:flex;justify-content:space-between;align-items:center">
+      <button type="button" class="btn alt" id="btnResetDefaultChk">Restablecer Originales</button>
+      <button type="button" class="btn success" onclick="closeModal('modalConfigChecklist')">Listo ✔️</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: VEHÍCULO / MAQUINARIA -->
+<div class="modal-overlay" id="modalVehiculo" hidden>
+  <div class="modal-box">
+    <div class="card-header">
+      <h2>🚗 Registrar / Editar Vehículo o Maquinaria</h2>
+      <button class="btn alt" type="button" onclick="closeModal('modalVehiculo')">✕</button>
+    </div>
+    <form id="modalVehiculoForm">
+      <div class="grid">
+        <div>
+          <label for="vehCategoria">Categoría de Equipo</label>
+          <select id="vehCategoria" onchange="onVehCategoriaChange()">
+            <option value="vehiculo">🚙 Vehículo Liviano (Camioneta / Auto / Van)</option>
+            <option value="maquinaria">🚜 Maquinaria Pesada (Volquete / Retroexcavadora / etc.)</option>
+          </select>
+        </div>
+        <div>
+          <label for="vehUnidad">Nombre de la Unidad</label>
+          <input id="vehUnidad" placeholder="ej. Volquete 02, Nissan 2012" required>
+        </div>
+        <div>
+          <label for="vehPlaca">Placa / Código de Equipo</label>
+          <input id="vehPlaca" placeholder="ej. VOL-550 o RET-204" required>
+        </div>
+        <div>
+          <label for="vehMarca">Marca</label>
+          <input id="vehMarca" placeholder="ej. Volvo, Caterpillar, Toyota">
+        </div>
+        <div>
+          <label for="vehModelo">Modelo / Capacidad</label>
+          <input id="vehModelo" placeholder="ej. FMX 440 Tolva 15m3, 420F2">
+        </div>
+        <div>
+          <label for="vehCombustible">Combustible</label>
+          <select id="vehCombustible">
+            <option value="Diésel Pesado">Diésel Pesado</option>
+            <option value="Diésel B5">Diésel B5</option>
+            <option value="Gasolina 95">Gasolina 95</option>
+            <option value="Gasolina 90">Gasolina 90</option>
+            <option value="GLP">GLP</option>
+          </select>
+        </div>
+        <div>
+          <label for="vehOdo" id="labelVehOdo">Odómetro Inicial (o Horómetro)</label>
+          <input id="vehOdo" type="number" min="0" value="0">
+        </div>
+      </div>
+
+      <div style="margin-top:14px;border-top:1px solid var(--line);padding-top:10px">
+        <h4 style="margin:0 0 8px;color:#92400e;font-size:13.5px" id="titleMaintConfig">🛢️ Mantenimiento: Último Cambio de Aceite</h4>
+        <div class="grid" style="grid-template-columns:1fr 1fr;">
+          <div>
+            <label for="vehUltimoAceiteFecha">Fecha del Último Cambio</label>
+            <input id="vehUltimoAceiteFecha" type="date">
+          </div>
+          <div>
+            <label for="vehUltimoAceiteKm" id="labelVehUltimoKm">Kilometraje (o Horas) del Último Cambio</label>
+            <input id="vehUltimoAceiteKm" type="number" min="0" placeholder="0">
+          </div>
+        </div>
+        <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6px">
+          <div>
+            <label for="vehIntervaloKm" id="labelVehIntervalo">Intervalo de Cambio (5,000 km o 250 hrs)</label>
+            <input id="vehIntervaloKm" type="number" value="5000">
+          </div>
+          <div>
+            <label for="vehTipoAceite">Tipo / Grado de Aceite</label>
+            <input id="vehTipoAceite" placeholder="ej. 15W-40 CI-4, CAT DEO">
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px">
+        <button type="button" class="btn alt" onclick="closeModal('modalVehiculo')">Cancelar</button>
+        <button type="submit" class="btn success">Guardar Equipo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: USUARIO / CONDUCTOR -->
+<div class="modal-overlay" id="modalUser" hidden>
+  <div class="modal-box">
+    <div class="card-header">
+      <h2 id="modalUserTitle">Registrar Conductor / Operador</h2>
+      <button class="btn alt" type="button" onclick="closeModal('modalUser')">✕</button>
+    </div>
+    <form id="modalUserForm">
+      <input type="hidden" id="editUserId">
+      <div>
+        <label for="userUsuario">Nombre de usuario (Login)</label>
+        <input id="userUsuario" placeholder="ej. jorge" required>
+      </div>
+      <div>
+        <label for="userNombre">Nombre y Apellidos</label>
+        <input id="userNombre" placeholder="ej. Jorge Ramírez" required>
+      </div>
+      <div>
+        <label for="userPass">Contraseña</label>
+        <input id="userPass" type="text" placeholder="ej. 123456" required>
+      </div>
+      <div class="grid">
+        <div>
+          <label for="userRol">Rol</label>
+          <select id="userRol">
+            <option value="driver">Conductor / Operador</option>
+            <option value="admin">Administrador</option>
+          </select>
+        </div>
+        <div>
+          <label for="userUnidad">Unidad Asignada</label>
+          <select id="userUnidad"></select>
+        </div>
+      </div>
+      <div style="margin-top:18px;display:flex;justify-content:flex-end;gap:10px">
+        <button type="button" class="btn alt" onclick="closeModal('modalUser')">Cancelar</button>
+        <button type="submit" class="btn success">Guardar Usuario</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- MODAL: RESPALDO Y RESTAURACIÓN -->
+<div class="modal-overlay" id="modalBackup" hidden>
+  <div class="modal-box">
+    <div class="card-header">
+      <h2>💾 Copia de Seguridad y Restauración</h2>
+      <button class="btn alt" type="button" onclick="closeModal('modalBackup')">✕</button>
+    </div>
+    <p style="color:var(--mut);font-size:13.5px">
+      Puedes exportar toda la base de datos en formato JSON para tener un respaldo seguro o transferirla a otra PC.
+    </p>
+    <div style="display:flex;flex-direction:column;gap:12px;margin:18px 0">
+      <button class="btn" id="btnDownloadBackup" style="padding:12px">
+        📥 Descargar Copia de Seguridad (JSON)
+      </button>
+      <hr style="border:0;border-top:1px solid var(--line);margin:8px 0">
+      <label style="font-weight:700">Restaurar copia de seguridad:</label>
+      <input type="file" id="inputRestoreBackup" accept=".json">
+      <button class="btn warn" id="btnUploadBackup">⚠️ Restaurar Datos desde Archivo JSON</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- LÓGICA DE LA APLICACIÓN -->
+<script>
+// --- PUNTOS DE INSPECCIÓN PRE-OPERACIONAL ---
+const DEFAULT_CHECKLIST_VEHICLE = [
+  "Luces (altas/bajas/direccionales/freno)",
+  "Frenos de servicio y estacionamiento",
+  "Neumáticos (presión y repuesto)",
+  "Nivel de aceite de motor y refrigerante",
+  "Espejos retrovisores y limpiaparabrisas",
+  "Documentos (SOAT / Tarjeta de Propiedad / Revisión)",
+  "Botiquín y Extintor de emergencia",
+  "Herramientas, gata hidráulica y llave de ruedas"
+];
+
+const DEFAULT_CHECKLIST_MACHINERY = [
+  "Nivel de aceite de motor y refrigerante",
+  "Fugas en mangueras y cilindros hidráulicos",
+  "Sistema de levante / Tolva / Cuchara y pines",
+  "Alarma sonora de retroceso y circulina estroboscópica",
+  "Frenos de servicio y traba de parqueo",
+  "Luces de faena y faros auxiliares",
+  "Extintor de 6kg o PQS y botiquín",
+  "Horómetro operativo y tablero de instrumentos"
+];
+
+// --- DATOS POR DEFECTO ---
+const DEFAULT_DATA = {
+  apariencia: {
+    logoUrl: "assets/logo.png",
+    loginBgUrl: "assets/login-bg.png"
+  },
+  checklistItems: [...DEFAULT_CHECKLIST_VEHICLE],
+  checklistMaquinaria: [...DEFAULT_CHECKLIST_MACHINERY],
+  usuarios: [
+    { id: "u-admin", usuario: "jushr", pass: "jushr2026", nombre: "Administrador JUSHMRCB", rol: "admin", unidad: "Todas", placa: "Flota General" },
+    { id: "u-carlos", usuario: "carlos", pass: "123456", nombre: "Carlos Mendoza", rol: "driver", unidad: "Unidad 01", placa: "ABC-123" },
+    { id: "u-marcos", usuario: "marcos", pass: "123456", nombre: "Marcos Silva", rol: "driver", unidad: "Unidad 02", placa: "XYZ-789" },
+    { id: "u-juan", usuario: "juan", pass: "123456", nombre: "Juan Pérez", rol: "driver", unidad: "Nissan 2012", placa: "MNO-456" },
+    { id: "u-raul", usuario: "raul", pass: "123456", nombre: "Raúl Huamán (Operador)", rol: "driver", unidad: "Volquete 01", placa: "VOL-550" },
+    { id: "u-pedro", usuario: "pedro", pass: "123456", nombre: "Pedro Castillo (Operador)", rol: "driver", unidad: "Retroexcavadora 01", placa: "RET-204" }
+  ],
+  vehiculos: [
+    {
+      unidad: "Unidad 01",
+      categoria: "vehiculo",
+      placa: "ABC-123",
+      marca: "Toyota",
+      modelo: "Hilux 4x4",
+      combustibleTipo: "Diésel",
+      odometroInicial: 45000,
+      ultimoCambioAceiteFecha: "2026-10-15",
+      ultimoCambioAceiteKm: 41000,
+      intervaloAceiteKm: 5000,
+      proximoCambioAceiteKm: 46000,
+      tallerAceite: "Taller Central Autorizado",
+      tipoAceite: "15W-40 Sintético Diésel"
+    },
+    {
+      unidad: "Unidad 02",
+      categoria: "vehiculo",
+      placa: "XYZ-789",
+      marca: "Hyundai",
+      modelo: "H1 Van",
+      combustibleTipo: "Gasolina 95",
+      odometroInicial: 38200,
+      ultimoCambioAceiteFecha: "2026-08-10",
+      ultimoCambioAceiteKm: 33500,
+      intervaloAceiteKm: 5000,
+      proximoCambioAceiteKm: 38500,
+      tallerAceite: "Lubricentro Express Sur",
+      tipoAceite: "10W-30 Semi-sintético"
+    },
+    {
+      unidad: "Nissan 2012",
+      categoria: "vehiculo",
+      placa: "MNO-456",
+      marca: "Nissan",
+      modelo: "Frontier 2012",
+      combustibleTipo: "Diésel",
+      odometroInicial: 18700,
+      ultimoCambioAceiteFecha: "2026-07-22",
+      ultimoCambioAceiteKm: 15000,
+      intervaloAceiteKm: 5000,
+      proximoCambioAceiteKm: 20000,
+      tallerAceite: "Concesionario Oficial Nissan",
+      tipoAceite: "5W-30 Sintético"
+    },
+    {
+      unidad: "Volquete 01",
+      categoria: "maquinaria",
+      tipoMaquinaria: "Volquete",
+      placa: "VOL-550",
+      marca: "Volvo",
+      modelo: "FMX 440 (Tolva 15m3)",
+      combustibleTipo: "Diésel Pesado",
+      odometroInicial: 124500,
+      horometroInicial: 4850,
+      tipoMedicion: "km_horas",
+      ultimoCambioAceiteFecha: "2026-10-05",
+      ultimoCambioAceiteKm: 120000,
+      intervaloAceiteKm: 5000,
+      proximoCambioAceiteKm: 125000,
+      ultimoEngraseFecha: "2026-11-12",
+      tallerAceite: "Taller Pesado Minero",
+      tipoAceite: "15W-40 Mineral Pesado CI-4"
+    },
+    {
+      unidad: "Retroexcavadora 01",
+      categoria: "maquinaria",
+      tipoMaquinaria: "Retroexcavadora",
+      placa: "RET-204",
+      marca: "Caterpillar",
+      modelo: "420F2 4x4",
+      combustibleTipo: "Diésel Pesado",
+      odometroInicial: 0,
+      horometroInicial: 3250,
+      tipoMedicion: "horas",
+      ultimoCambioAceiteFecha: "2026-09-28",
+      ultimoCambioAceiteKm: 3000,
+      intervaloAceiteKm: 250,
+      proximoCambioAceiteKm: 3250,
+      ultimoEngraseFecha: "2026-11-15",
+      tallerAceite: "Distribuidor CAT Autorizado",
+      tipoAceite: "CAT DEO 15W-40"
+    }
+  ],
+  mantenimiento: {
+    "Unidad 01": { tipo: "Cambio de aceite (cada 5000 km)", proxKm: 46000, fechaLimite: "2026-12-15", taller: "Taller Central Autorizado", ultimoCambioFecha: "2026-10-15", ultimoCambioKm: 41000 },
+    "Unidad 02": { tipo: "Cambio de aceite (cada 5000 km)", proxKm: 38500, fechaLimite: "2026-11-25", taller: "Lubricentro Express Sur", ultimoCambioFecha: "2026-08-10", ultimoCambioKm: 33500 },
+    "Nissan 2012": { tipo: "Cambio de aceite (cada 5000 km)", proxKm: 20000, fechaLimite: "2027-01-20", taller: "Concesionario Oficial Nissan", ultimoCambioFecha: "2026-07-22", ultimoCambioKm: 15000 },
+    "Volquete 01": { tipo: "Mantenimiento Motor Pesado y Engrase Tolva", proxKm: 125000, fechaLimite: "2026-11-30", taller: "Taller Pesado Minero", ultimoCambioFecha: "2026-10-05", ultimoCambioKm: 120000 },
+    "Retroexcavadora 01": { tipo: "Mantenimiento 250 Hrs y Engrase de Articulaciones", proxKm: 3250, fechaLimite: "2026-11-20", taller: "Distribuidor CAT Autorizado", ultimoCambioFecha: "2026-09-28", ultimoCambioKm: 3000 }
+  },
+  registros: [
+    {
+      id: "reg-101",
+      uid: "u-carlos",
+      conductor: "Carlos Mendoza",
+      unidad: "Unidad 01",
+      placa: "ABC-123",
+      fecha: "2026-11-16",
+      salida: "08:15",
+      llegada: "13:30",
+      kmIni: 45050,
+      kmFin: 45180,
+      combustible: 4.5,
+      fallas: [],
+      destino: "Almacén Central - Sede Lima Norte",
+      obs: "Entrega de repuestos e insumos sin incidentes.",
+      creado: "2026-11-16T13:35:00.000Z"
+    },
+    {
+      id: "reg-102",
+      uid: "u-marcos",
+      conductor: "Marcos Silva",
+      unidad: "Unidad 02",
+      placa: "XYZ-789",
+      fecha: "2026-11-17",
+      salida: "09:00",
+      llegada: "15:45",
+      kmIni: 38220,
+      kmFin: 38395,
+      combustible: 6.0,
+      fallas: ["Luces (altas/bajas/direccionales/freno)"],
+      destino: "Supervisión de campo - Chorrillos y Villa El Salvador",
+      obs: "Foco posterior derecho parpadea intermitente.",
+      creado: "2026-11-17T15:50:00.000Z"
+    },
+    {
+      id: "reg-103",
+      uid: "u-juan",
+      conductor: "Juan Pérez",
+      unidad: "Nissan 2012",
+      placa: "MNO-456",
+      fecha: "2026-11-18",
+      salida: "07:30",
+      llegada: "12:10",
+      kmIni: 18750,
+      kmFin: 18880,
+      combustible: 3.8,
+      fallas: [],
+      destino: "Traslado de personal técnico a Planta Huachipa",
+      obs: "Tráfico fluido, retorno en horario previsto.",
+      creado: "2026-11-18T12:15:00.000Z"
+    },
+    {
+      id: "reg-104",
+      uid: "u-raul",
+      conductor: "Raúl Huamán (Operador)",
+      unidad: "Volquete 01",
+      placa: "VOL-550",
+      fecha: "2026-11-18",
+      salida: "07:00",
+      llegada: "16:30",
+      kmIni: 124500,
+      kmFin: 124620,
+      combustible: 18.5,
+      fallas: [],
+      destino: "Transporte de agregados de Cantera a Obra Puente Piedra",
+      obs: "8 viajes de material. Sistema de tolva operativo al 100%.",
+      creado: "2026-11-18T16:35:00.000Z"
+    },
+    {
+      id: "reg-105",
+      uid: "u-pedro",
+      conductor: "Pedro Castillo (Operador)",
+      unidad: "Retroexcavadora 01",
+      placa: "RET-204",
+      fecha: "2026-11-18",
+      salida: "08:00",
+      llegada: "17:00",
+      kmIni: 3250,
+      kmFin: 3258,
+      combustible: 12.0,
+      fallas: [],
+      destino: "Zanjado y movimiento de tierras en Sector 4",
+      obs: "8 horas de operación en horómetro. Engrase matutino realizado.",
+      creado: "2026-11-18T17:05:00.000Z"
+    }
+  ]
+};
+
+// --- ESTADO GLOBAL ---
+let state = {
+  user: null,
+  isApiMode: false,
+  data: { ...DEFAULT_DATA },
+  currentMonth: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+  selectedDay: null
+};
+
+// --- STORAGE ADAPTER CON RECUPERACIÓN AUTOMÁTICA DE DATOS ---
+const STORAGE_KEY = "BITACORA_VEHICULAR_DB_V3";
+
+async function initStorage() {
+  // 1. Intentar cargar desde el servidor local (API) si está activo
+  try {
+    const res = await fetch("/api/data", { cache: "no-store" });
+    if (res.ok) {
+      const apiData = await res.json();
+      state.isApiMode = true;
+      state.data = apiData;
+    }
+  } catch (e) {
+    state.isApiMode = false;
+  }
+
+  // 2. RECUPERAR CUALQUIER DATO PREVIO INGRESADO POR EL USUARIO EN LOCALSTORAGE
+  // (Escanea todas las versiones y claves posibles para que nunca se pierda nada)
+  const candidateKeys = [
+    "BITACORA_VEHICULAR_DB_V2",
+    "BITACORA_VEHICULAR_DB",
+    "BITACORA_VEHICULAR_DB_V1",
+    "BITACORA_VEHICULAR_DB_V3"
+  ];
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith("BITACORA_") && !candidateKeys.includes(k)) {
+        candidateKeys.push(k);
+      }
+    }
+  } catch(e) {}
+
+  let userRecords = [];
+  let userVehicles = [];
+  let userUsers = [];
+  let userMaint = {};
+
+  for (const k of candidateKeys) {
+    try {
+      const raw = localStorage.getItem(k);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed.registros)) {
+          parsed.registros.forEach(r => {
+            if (!userRecords.some(x => x.id === r.id)) {
+              userRecords.push(r);
+            }
+          });
+        }
+        if (Array.isArray(parsed.vehiculos)) {
+          parsed.vehiculos.forEach(v => {
+            if (!userVehicles.some(x => x.unidad.toLowerCase() === v.unidad.toLowerCase())) {
+              userVehicles.push(v);
+            }
+          });
+        }
+        if (Array.isArray(parsed.usuarios)) {
+          parsed.usuarios.forEach(u => {
+            if (!userUsers.some(x => x.usuario.toLowerCase() === u.usuario.toLowerCase())) {
+              userUsers.push(u);
+            }
+          });
+        }
+        if (parsed.mantenimiento) {
+          userMaint = { ...userMaint, ...parsed.mantenimiento };
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (!state.data || !state.data.registros) {
+    state.data = { ...DEFAULT_DATA };
+  }
+
+  // FUSIONAR: Incorporar todos los registros previamente guardados
+  if (userRecords.length > 0) {
+    userRecords.forEach(r => {
+      if (!state.data.registros.some(x => x.id === r.id)) {
+        state.data.registros.unshift(r);
+      }
+    });
+  }
+
+  // FUSIONAR VEHÍCULOS / MAQUINARIA
+  if (userVehicles.length > 0) {
+    userVehicles.forEach(v => {
+      const idx = state.data.vehiculos.findIndex(x => x.unidad.toLowerCase() === v.unidad.toLowerCase());
+      if (idx === -1) {
+        state.data.vehiculos.push(v);
+      } else {
+        state.data.vehiculos[idx] = { ...v, ...state.data.vehiculos[idx] };
+      }
+    });
+  }
+
+  // FUSIONAR USUARIOS
+  if (userUsers.length > 0) {
+    userUsers.forEach(u => {
+      if (!state.data.usuarios.some(x => x.usuario.toLowerCase() === u.usuario.toLowerCase())) {
+        state.data.usuarios.push(u);
+      }
+    });
+  }
+
+  // FUSIONAR MANTENIMIENTO
+  state.data.mantenimiento = { ...(state.data.mantenimiento || {}), ...userMaint };
+
+  // Sincronizar hacia el servidor si está activo
+  if (state.isApiMode) {
+    try {
+      fetch("/api/sync/merge", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          registros: state.data.registros,
+          vehiculos: state.data.vehiculos,
+          usuarios: state.data.usuarios,
+          mantenimiento: state.data.mantenimiento
+        })
+      }).catch(() => {});
+    } catch(e) {}
+  }
+
+  // Guardar datos consolidados en todas las claves de localStorage
+  const fullJson = JSON.stringify(state.data);
+  candidateKeys.forEach(k => {
+    try { localStorage.setItem(k, fullJson); } catch(e) {}
+  });
+
+  const adminUser = (state.data.usuarios || []).find(u => u.usuario === 'jushr');
+  if (adminUser) {
+    adminUser.nombre = "Administrador JUSHMRCB";
+  }
+  applyAppearance();
+}
+
+function saveToLocal() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.data));
+}
+
+async function persistData() {
+  if (state.isApiMode) return;
+  saveToLocal();
+}
+
+// --- HELPERS ---
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+const hoyStr = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+const horaStr = () => {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + ":" + String(d.getMinutes()).padStart(2, '0');
+};
+
+function toast(msg) {
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2800);
+}
+
+// DETERMINAR SI UNA UNIDAD ES MAQUINARIA PESADA
+function isHeavyMachinery(unidad) {
+  const u = String(unidad || "").toLowerCase();
+  const veh = (state.data.vehiculos || []).find(v => v.unidad.toLowerCase() === u);
+  if (veh && veh.categoria === "maquinaria") return true;
+  return u.includes("volquete") || u.includes("retroexcavadora") || u.includes("excavadora") || u.includes("tractor") || u.includes("cargador") || u.includes("oruga");
+}
+
+// COLOR DEL CHIP: AZUL PARA VEHÍCULOS (INCLUIDO NISSAN 2012) Y ÁMBAR PARA MAQUINARIA
+function getUnitColor(unidad) {
+  if (isHeavyMachinery(unidad)) {
+    return "#D97706"; // Ámbar / Naranja Industrial para Maquinaria Pesada (Volquete, Retroexcavadora)
+  }
+  return "#2563EB"; // Azul corporativo para todos los Vehículos Livianos (Nissan 2012, Toyota, Hyundai, etc.)
+}
+
+function getUnitBadge(unidad) {
+  const u = String(unidad || "").toLowerCase();
+  if (u.includes("volquete")) return "🚚 Volquete";
+  if (u.includes("retroexcavadora")) return "🚜 Retroexcavadora";
+  if (isHeavyMachinery(unidad)) return "🚜 Maquinaria Pesada";
+  return "🚙 Vehículo Liviano";
+}
+
+function getChecklistItems(unidad) {
+  if (unidad && isHeavyMachinery(unidad)) {
+    return (state.data.checklistMaquinaria && state.data.checklistMaquinaria.length)
+      ? state.data.checklistMaquinaria
+      : DEFAULT_CHECKLIST_MACHINERY;
+  }
+  return (state.data.checklistItems && state.data.checklistItems.length)
+    ? state.data.checklistItems
+    : DEFAULT_CHECKLIST_VEHICLE;
+}
+
+// Odómetro / Horómetro máximo registrado para una unidad
+function getOdometer(unidad) {
+  const recs = (state.data.registros || []).filter(x => x.unidad === unidad);
+  const maxReg = recs.reduce((m, x) => Math.max(m, Number(x.kmFin) || 0), 0);
+  const veh = (state.data.vehiculos || []).find(v => v.unidad === unidad);
+  const base = veh ? Number(veh.horometroInicial || veh.odometroInicial) || 0 : 0;
+  return Math.max(maxReg, base);
+}
+
+// Estado del mantenimiento (cada 5000 km o 250 hrs en maquinaria)
+function getOilStatus(unidad) {
+  const veh = (state.data.vehiculos || []).find(v => v.unidad === unidad);
+  if (!veh) return null;
+
+  const isMach = isHeavyMachinery(unidad);
+  const currentOdo = getOdometer(unidad);
+  const ultimoKm = Number(veh.ultimoCambioAceiteKm !== undefined ? veh.ultimoCambioAceiteKm : (veh.horometroInicial || veh.odometroInicial || 0));
+  const fechaUltimo = veh.ultimoCambioAceiteFecha || "Sin registrar";
+  const intervalo = Number(veh.intervaloAceiteKm) || (isMach ? 250 : 5000);
+  const proxKm = ultimoKm + intervalo;
+  const kmRecorridos = currentOdo - ultimoKm;
+  const kmRestantes = proxKm - currentOdo;
+  const unitLabel = isMach && veh.tipoMedicion === "horas" ? "hrs" : "km";
+
+  let cls = "ok";
+  if (kmRestantes <= 0) cls = "bad";
+  else if (kmRestantes <= (isMach ? 30 : 500)) cls = "warn";
+
+  const pct = Math.min(100, Math.max(0, Math.round((kmRecorridos / intervalo) * 100)));
+
+  return {
+    unidad,
+    isMach,
+    unitLabel,
+    currentOdo,
+    ultimoKm,
+    fechaUltimo,
+    intervalo,
+    proxKm,
+    kmRecorridos,
+    kmRestantes,
+    pct,
+    cls,
+    tipoAceite: veh.tipoAceite || (isMach ? "15W-40 CI-4 Pesado" : "Sintético"),
+    taller: veh.tallerAceite || "Taller Autorizado"
+  };
+}
+
+// --- PERSONALIZACIÓN DE APARIENCIA (LOGO Y FONDO) ---
+function applyAppearance() {
+  const ap = state.data.apariencia || {};
+  const logoUrl = ap.logoUrl || "assets/logo.png";
+  const bgUrl = ap.loginBgUrl || "assets/login-bg.png";
+
+  // Logo en Header
+  const hLogo = $("#headerLogoImg");
+  if (hLogo) {
+    hLogo.src = logoUrl;
+    hLogo.style.display = "block";
+    $("#headerIconFallback").style.display = "none";
+  }
+
+  // Logo en Login
+  const lLogo = $("#loginLogoImg");
+  if (lLogo) {
+    lLogo.src = logoUrl;
+    lLogo.style.display = "block";
+    $("#loginLogoFallback").style.display = "none";
+  }
+
+  // Fondo en Login
+  if (bgUrl) {
+    document.documentElement.style.setProperty("--login-bg", `url('${bgUrl}')`);
+  }
+}
+
+// --- INICIALIZACIÓN ---
+document.addEventListener("DOMContentLoaded", async () => {
+  await initStorage();
+  initChecklist();
+  bindEvents();
+
+  const savedUser = sessionStorage.getItem("BITACORA_ACTIVE_USER");
+  if (savedUser) {
+    try {
+      state.user = JSON.parse(savedUser);
+      if (state.user && state.user.usuario === 'jushr') {
+        state.user.nombre = "Administrador JUSHMRCB";
+      }
+      launchApp();
+    } catch {
+      sessionStorage.removeItem("BITACORA_ACTIVE_USER");
+    }
+  }
+});
+
+function initChecklist(targetUnidad) {
+  const unidad = targetUnidad || (state.user ? (state.user.rol === "admin" ? $("#formUnidad").value : state.user.unidad) : "");
+  const items = getChecklistItems(unidad);
+  const isMach = isHeavyMachinery(unidad);
+
+  $("#chkTitleLabel").textContent = isMach
+    ? "🚜 Revisión Pre-Operacional de Maquinaria Pesada (Inspección 360°)"
+    : "🚙 Revisión Pre-Operacional del Vehículo (marca lo que falle o esté pendiente)";
+
+  const c = $("#chkContainer");
+  c.innerHTML = items.map((item, idx) => `
+    <label class="chk-item">
+      <input type="checkbox" data-text="${esc(item)}">
+      <span>${esc(item)}</span>
+    </label>
+  `).join("");
+}
+
+// --- EVENTOS Y BINDINGS ---
+function bindEvents() {
+  // Botones de login rápido
+  $$(".btn-quick").forEach(b => {
+    b.onclick = () => {
+      $("#loginUser").value = b.dataset.user;
+      $("#loginPass").value = b.dataset.pass;
+      $("#loginForm").dispatchEvent(new Event("submit"));
+    };
+  });
+
+  // Login Form
+  $("#loginForm").onsubmit = async e => {
+    e.preventDefault();
+    $("#loginErr").textContent = "";
+    const username = $("#loginUser").value.trim().toLowerCase();
+    const pass = $("#loginPass").value;
+
+    let userMatch = null;
+    if (state.isApiMode) {
+      try {
+        const res = await fetch("/api/auth/login", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ usuario: username, pass })
+        });
+        const resData = await res.json();
+        if (res.ok && resData.user) {
+          userMatch = resData.user;
+        } else {
+          $("#loginErr").textContent = resData.error || "Usuario o contraseña incorrectos.";
+          return;
+        }
+      } catch (err) {
+        $("#loginErr").textContent = "Error al conectar con el servidor.";
+        return;
+      }
+    } else {
+      userMatch = state.data.usuarios.find(u => u.usuario.toLowerCase() === username && u.pass === pass);
+      if (!userMatch) {
+        $("#loginErr").textContent = "Usuario o contraseña incorrectos.";
+        return;
+      }
+    }
+
+    state.user = userMatch;
+    sessionStorage.setItem("BITACORA_ACTIVE_USER", JSON.stringify(userMatch));
+    launchApp();
+  };
+
+  // Logout
+  $("#btnLogout").onclick = () => {
+    state.user = null;
+    sessionStorage.removeItem("BITACORA_ACTIVE_USER");
+    $("#app").hidden = true;
+    $("#login").hidden = false;
+    $("#loginPass").value = "";
+    toast("Sesión cerrada.");
+  };
+
+  // Navegación de pestañas
+  $$(".tab-btn").forEach(btn => {
+    btn.onclick = () => switchTab(btn.dataset.tab);
+  });
+
+  // Checklist Todo Conforme
+  $("#btnChkAllOk").onclick = () => {
+    $$("#chkContainer input").forEach(ch => ch.checked = false);
+    toast("Revisión pre-operacional conforme (sin fallas)");
+  };
+
+  // Botón para editar puntos del checklist
+  $("#btnOpenConfigChk").onclick = () => openConfigChecklistModal();
+
+  // Botón en modal edit para Todo Conforme
+  $("#btnEditChkAllOk").onclick = () => {
+    $$("#modalEditChkContainer input").forEach(ch => ch.checked = false);
+    toast("Revisión pre-operacional marcada sin fallas");
+  };
+
+  // Cálculo en tiempo real de Km/Horas y combustible
+  const updateDiffCalc = () => {
+    const ini = Number($("#formKmIni").value) || 0;
+    const fin = Number($("#formKmFin").value) || 0;
+    const comb = Number($("#formComb").value) || 0;
+    const diff = fin - ini;
+    const bDiff = $("#calcDiffBadge");
+    const bRend = $("#calcRendimientoBadge");
+
+    const targetUnit = state.user ? (state.user.rol === "admin" ? $("#formUnidad").value : state.user.unidad) : "";
+    const isMach = isHeavyMachinery(targetUnit);
+    const unitLabel = isMach ? "horas" : "km";
+
+    if (fin > 0 && fin >= ini) {
+      bDiff.textContent = `Avance: ${diff} ${unitLabel}`;
+      bDiff.style.color = "var(--navy)";
+      if (comb > 0) {
+        bRend.textContent = `Rendimiento: ${(diff / comb).toFixed(1)} ${unitLabel}/gal`;
+      } else {
+        bRend.textContent = "";
+      }
+    } else if (fin > 0 && fin < ini) {
+      bDiff.textContent = "⚠️ El valor final no puede ser menor al inicial";
+      bDiff.style.color = "var(--bad)";
+      bRend.textContent = "";
+    } else {
+      bDiff.textContent = "";
+      bRend.textContent = "";
+    }
+  };
+  $("#formKmIni").oninput = updateDiffCalc;
+  $("#formKmFin").oninput = updateDiffCalc;
+  $("#formComb").oninput = updateDiffCalc;
+
+  // Cambio de unidad en form
+  $("#formUnidad").onchange = () => {
+    const u = $("#formUnidad").value;
+    const odo = getOdometer(u);
+    const isMach = isHeavyMachinery(u);
+
+    $("#formKmIni").value = odo || "";
+    $("#currentOdoBadge").textContent = `Último registrado: ${odo} ${isMach ? 'hrs' : 'km'}`;
+
+    const badge = $("#unitTypeBadge");
+    badge.className = `category-badge ${isMach ? 'machinery' : 'vehicle'}`;
+    badge.textContent = getUnitBadge(u);
+
+    $("#labelKmIni").textContent = isMach ? "Horómetro / Km Inicial" : "Km Inicial";
+    $("#labelKmFin").textContent = isMach ? "Horómetro / Km Final" : "Km Final";
+
+    initChecklist(u);
+    updateDiffCalc();
+  };
+
+  // Guardar nuevo registro
+  $("#regForm").onsubmit = async e => {
+    e.preventDefault();
+    $("#formErr").textContent = "";
+
+    const ini = Number($("#formKmIni").value);
+    const fin = Number($("#formKmFin").value);
+    if (fin < ini) {
+      $("#formErr").textContent = "El valor final no puede ser menor al inicial.";
+      return;
+    }
+
+    const unidad = state.user.rol === "admin" ? $("#formUnidad").value : state.user.unidad;
+    const veh = (state.data.vehiculos || []).find(v => v.unidad === unidad);
+    const placa = veh ? veh.placa : (state.user.placa || "");
+
+    const fallas = Array.from($$("#chkContainer input:checked")).map(i => i.dataset.text);
+
+    const newRecord = {
+      id: "reg-" + Date.now() + "-" + Math.random().toString(36).substr(2, 4),
+      uid: state.user.id || state.user.usuario,
+      conductor: state.user.nombre,
+      unidad: unidad,
+      placa: placa,
+      fecha: $("#formFecha").value,
+      salida: $("#formSalida").value,
+      llegada: $("#formLlegada").value,
+      kmIni: ini,
+      kmFin: fin,
+      combustible: Number($("#formComb").value) || 0,
+      fallas: fallas,
+      destino: $("#formDestino").value.trim(),
+      obs: $("#formObs").value.trim(),
+      creado: new Date().toISOString()
+    };
+
+    if (state.isApiMode) {
+      try {
+        const res = await fetch("/api/registros", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(newRecord)
+        });
+        if (!res.ok) throw new Error("Error en servidor");
+        const json = await res.json();
+        state.data.registros.unshift(json.registro);
+      } catch (err) {
+        $("#formErr").textContent = "No se pudo guardar en el servidor.";
+        return;
+      }
+    } else {
+      state.data.registros.unshift(newRecord);
+      persistData();
+    }
+
+    toast("✅ Registro de salida / labor guardado con éxito.");
+    $("#regForm").reset();
+    resetFormDefaults();
+    renderAll();
+  };
+
+  // Filtros
+  ["filterSearch", "filterCategoria", "filterUnidad", "filterDesde", "filterHasta"].forEach(id => {
+    $("#" + id).oninput = renderTable;
+    $("#" + id).onchange = renderTable;
+  });
+
+  $("#btnClearFilters").onclick = () => {
+    $("#filterSearch").value = "";
+    $("#filterCategoria").value = "";
+    $("#filterUnidad").value = "";
+    $("#filterDesde").value = "";
+    $("#filterHasta").value = "";
+    state.selectedDay = null;
+    renderTable();
+  };
+
+  // Exportaciones
+  $("#btnExportXls").onclick = exportExcel;
+  $("#btnExportCsv").onclick = exportCsv;
+  $("#btnPrint").onclick = () => {
+    const meta = `Generado el: ${new Date().toLocaleString('es-PE')} | Usuario: ${state.user.nombre} (${state.user.rol})`;
+    $("#printMeta").textContent = meta;
+    window.print();
+  };
+
+  // Respaldo
+  $("#btnBackup").onclick = () => $("#modalBackup").hidden = false;
+  $("#btnDownloadBackup").onclick = downloadBackupJson;
+  $("#btnUploadBackup").onclick = restoreBackupJson;
+
+  // Botones de Admin para modales
+  $("#btnNewUser").onclick = () => openUserModal();
+  $("#btnNewVehicle").onclick = () => openVehicleModal();
+
+  // Envío de modales
+  $("#modalUserForm").onsubmit = handleSaveUser;
+  $("#modalVehiculoForm").onsubmit = handleSaveVehicle;
+  $("#modalRegForm").onsubmit = handleSaveEditReg;
+  $("#modalCambioAceiteForm").onsubmit = handleSaveOilChange;
+
+  // Checklist modal config
+  $("#btnAddChkItem").onclick = () => {
+    const val = $("#inputNewChkItem").value.trim();
+    if (!val) return;
+    if (!state.data.checklistItems) state.data.checklistItems = [...DEFAULT_CHECKLIST_VEHICLE];
+    state.data.checklistItems.push(val);
+    $("#inputNewChkItem").value = "";
+    saveChecklistConfig();
+  };
+  $("#btnResetDefaultChk").onclick = () => {
+    if (confirm("¿Restablecer los puntos de inspección a los valores de fábrica?")) {
+      state.data.checklistItems = [...DEFAULT_CHECKLIST_VEHICLE];
+      state.data.checklistMaquinaria = [...DEFAULT_CHECKLIST_MACHINERY];
+      saveChecklistConfig();
+    }
+  };
+
+  // Cálculo en modal de cambio de aceite
+  $("#oilKm").oninput = () => {
+    const km = Number($("#oilKm").value) || 0;
+    const u = $("#oilUnidad").value;
+    const veh = (state.data.vehiculos || []).find(v => v.unidad === u);
+    const interval = veh ? Number(veh.intervaloAceiteKm) || (isHeavyMachinery(u) ? 250 : 5000) : 5000;
+    $("#oilProxKm").value = km + interval;
+  };
+  $("#oilUnidad").onchange = () => {
+    const u = $("#oilUnidad").value;
+    const currentOdo = getOdometer(u);
+    const veh = (state.data.vehiculos || []).find(v => v.unidad === u);
+    const isMach = isHeavyMachinery(u);
+    const interval = veh ? Number(veh.intervaloAceiteKm) || (isMach ? 250 : 5000) : 5000;
+
+    $("#oilKm").value = currentOdo;
+    $("#oilProxKm").value = currentOdo + interval;
+    $("#labelOilKm").textContent = isMach ? "Horómetro / Km al realizar" : "Kilometraje al realizar";
+    $("#labelOilProxKm").textContent = `Próximo servicio (+${interval} ${isMach ? 'hrs' : 'km'})`;
+  };
+
+  // Controles Calendario
+  $("#calPrevMonth").onclick = () => {
+    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1);
+    renderCalendar();
+  };
+  $("#calNextMonth").onclick = () => {
+    state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 1);
+    renderCalendar();
+  };
+  $("#calToday").onclick = () => {
+    state.currentMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    renderCalendar();
+  };
+}
+
+function launchApp() {
+  $("#login").hidden = true;
+  $("#app").hidden = false;
+
+  const isAdmin = state.user.rol === "admin";
+  $("#tabNavVehiculos").hidden = !isAdmin;
+  $("#tabNavUsuarios").hidden = !isAdmin;
+  $("#adminKpisContainer").hidden = !isAdmin;
+  $("#divSelectUnidad").hidden = !isAdmin;
+
+  $("#userBadge").innerHTML = `
+    <span>${esc(state.user.nombre)}</span>
+    <span class="user-role">${esc(state.user.rol)}</span>
+    <span>• ${esc(state.user.unidad || "Flota")}</span>
+  `;
+
+  populateUnidadesSelect();
+  resetFormDefaults();
+  switchTab("tabRegistros");
+  renderAll();
+}
+
+function populateUnidadesSelect() {
+  const units = (state.data.vehiculos || []).map(v => v.unidad);
+  const opts = units.map(u => {
+    const isMach = isHeavyMachinery(u);
+    return `<option value="${esc(u)}">${isMach ? '🚜 ' : '🚙 '}${esc(u)}</option>`;
+  }).join("");
+
+  $("#formUnidad").innerHTML = opts;
+  $("#filterUnidad").innerHTML = '<option value="">Todas las unidades</option>' + opts;
+  $("#editUnidad").innerHTML = opts;
+  $("#oilUnidad").innerHTML = opts;
+  $("#userUnidad").innerHTML = '<option value="Todas">Todas (Admin)</option>' + opts;
+}
+
+function resetFormDefaults() {
+  $("#formFecha").value = hoyStr();
+  $("#formSalida").value = horaStr();
+  $("#formLlegada").value = "";
+  
+  const targetUnit = state.user ? (state.user.rol === "admin" ? $("#formUnidad").value : state.user.unidad) : "";
+  const odo = getOdometer(targetUnit);
+  const isMach = isHeavyMachinery(targetUnit);
+
+  $("#formKmIni").value = odo || "";
+  $("#formKmFin").value = "";
+  $("#formComb").value = "";
+  $("#calcDiffBadge").textContent = "";
+  $("#calcRendimientoBadge").textContent = "";
+  $("#currentOdoBadge").textContent = `Último registrado: ${odo} ${isMach ? 'hrs' : 'km'}`;
+
+  const badge = $("#unitTypeBadge");
+  badge.className = `category-badge ${isMach ? 'machinery' : 'vehicle'}`;
+  badge.textContent = getUnitBadge(targetUnit);
+
+  $("#labelKmIni").textContent = isMach ? "Horómetro / Km Inicial" : "Km Inicial";
+  $("#labelKmFin").textContent = isMach ? "Horómetro / Km Final" : "Km Final";
+
+  initChecklist(targetUnit);
+}
+
+function switchTab(tabId) {
+  const tabs = ["tabRegistros", "tabCalendario", "tabMantenimiento", "tabVehiculos", "tabUsuarios"];
+  tabs.forEach(t => {
+    const el = $("#" + t);
+    if (el) el.hidden = t !== tabId;
+  });
+
+  $$(".tab-btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.tab === tabId);
+  });
+
+  if (tabId === "tabCalendario") renderCalendar();
+  if (tabId === "tabMantenimiento") renderMantenimiento();
+  if (tabId === "tabVehiculos") renderVehiculos();
+  if (tabId === "tabUsuarios") renderUsuarios();
+}
+
+function renderAll() {
+  renderAlerts();
+  renderKPIs();
+  renderTable();
+}
+
+// --- RENDERIZADO DE ALERTAS ---
+function renderAlerts() {
+  const container = $("#maintenanceAlerts");
+  const units = (state.data.vehiculos || []).map(v => v.unidad);
+  let html = "";
+
+  units.forEach(u => {
+    const oil = getOilStatus(u);
+    if (oil) {
+      if (oil.cls === "bad") {
+        html += `
+          <div class="alert-banner bad">
+            <span>🚨 <b>${esc(u)} (${getUnitBadge(u)}):</b> Mantenimiento/Aceite VENCIDO por ${-oil.kmRestantes} ${oil.unitLabel} (Último cambio: <b>${esc(oil.fechaUltimo)}</b> a ${oil.ultimoKm.toLocaleString()} ${oil.unitLabel} | Límite: ${oil.proxKm.toLocaleString()} ${oil.unitLabel}).</span>
+            <button class="btn alt" style="padding:4px 8px;font-size:11px" onclick="openOilModal('${esc(u)}')">🛠️ Registrar Servicio</button>
+          </div>`;
+      } else if (oil.cls === "warn") {
+        html += `
+          <div class="alert-banner warn">
+            <span>⚠️ <b>${esc(u)} (${getUnitBadge(u)}):</b> Próximo a vencer servicio (Faltan ${oil.kmRestantes} ${oil.unitLabel} | Último cambio: <b>${esc(oil.fechaUltimo)}</b>).</span>
+            <button class="btn alt" style="padding:4px 8px;font-size:11px" onclick="openOilModal('${esc(u)}')">🛠️ Registrar Servicio</button>
+          </div>`;
+      }
+    }
+  });
+
+  container.innerHTML = html;
+}
+
+// --- RENDERIZADO DE KPIS ---
+function renderKPIs() {
+  if (state.user.rol !== "admin") return;
+  const regs = state.data.registros || [];
+  const totalKm = regs.reduce((acc, r) => acc + ((Number(r.kmFin) || 0) - (Number(r.kmIni) || 0)), 0);
+  const totalComb = regs.reduce((acc, r) => acc + (Number(r.combustible) || 0), 0);
+  const totalSalidas = regs.length;
+  const avgRend = totalComb > 0 ? (totalKm / totalComb).toFixed(1) : "0.0";
+
+  let alertsCount = 0;
+  (state.data.vehiculos || []).forEach(v => {
+    const s = getOilStatus(v.unidad);
+    if (s && (s.cls === "bad" || s.cls === "warn")) alertsCount++;
+  });
+
+  $("#adminKpisContainer").innerHTML = `
+    <div class="kpi-card" style="border-left-color: var(--blue);">
+      <div class="kpi-title"><span>ACTIVIDAD TOTAL</span><span>📈</span></div>
+      <div class="kpi-value">${totalKm.toLocaleString()} km/hrs</div>
+      <div class="kpi-sub">${totalSalidas} comisiones y labores</div>
+    </div>
+    <div class="kpi-card" style="border-left-color: var(--amber);">
+      <div class="kpi-title"><span>COMBUSTIBLE TOTAL</span><span>⛽</span></div>
+      <div class="kpi-value">${totalComb.toFixed(1)} gal</div>
+      <div class="kpi-sub">Consumo flota y maquinaria</div>
+    </div>
+    <div class="kpi-card" style="border-left-color: var(--ok);">
+      <div class="kpi-title"><span>RENDIMIENTO MEDIO</span><span>⚡</span></div>
+      <div class="kpi-value">${avgRend} km/gal</div>
+      <div class="kpi-sub">Eficiencia operacional</div>
+    </div>
+    <div class="kpi-card" style="border-left-color: ${alertsCount > 0 ? 'var(--bad)' : 'var(--ok)'};">
+      <div class="kpi-title"><span>ALERTAS DE SERVICIO</span><span>🔧</span></div>
+      <div class="kpi-value">${alertsCount}</div>
+      <div class="kpi-sub">${alertsCount > 0 ? 'Equipos requieren atención' : 'Flota y maquinaria al día'}</div>
+    </div>
+  `;
+}
+
+// --- FILTRADO Y TABLA DE REGISTROS ---
+function getFilteredRecords() {
+  let list = [...(state.data.registros || [])];
+
+  if (state.user.rol !== "admin") {
+    list = list.filter(r => r.uid === state.user.id || r.conductor === state.user.nombre || r.unidad === state.user.unidad);
+  }
+
+  const q = ($("#filterSearch").value || "").trim().toLowerCase();
+  if (q) {
+    list = list.filter(r =>
+      (r.destino || "").toLowerCase().includes(q) ||
+      (r.conductor || "").toLowerCase().includes(q) ||
+      (r.unidad || "").toLowerCase().includes(q) ||
+      (r.placa || "").toLowerCase().includes(q) ||
+      (r.obs || "").toLowerCase().includes(q)
+    );
+  }
+
+  const cat = $("#filterCategoria").value;
+  if (cat === "vehiculo") {
+    list = list.filter(r => !isHeavyMachinery(r.unidad));
+  } else if (cat === "maquinaria") {
+    list = list.filter(r => isHeavyMachinery(r.unidad));
+  }
+
+  const u = $("#filterUnidad").value;
+  if (u) list = list.filter(r => r.unidad === u);
+
+  const desde = $("#filterDesde").value;
+  const hasta = $("#filterHasta").value;
+  if (desde) list = list.filter(r => r.fecha >= desde);
+  if (hasta) list = list.filter(r => r.fecha <= hasta);
+
+  if (state.selectedDay) {
+    list = list.filter(r => r.fecha === state.selectedDay);
+  }
+
+  return list.sort((a, b) => (b.fecha + (b.salida || "")).localeCompare(a.fecha + (a.salida || "")));
+}
+
+function renderTable() {
+  const list = getFilteredRecords();
+  const tbody = $("#rowsContainer");
+  const isAdmin = state.user.rol === "admin";
+
+  let title = isAdmin ? "📋 Todas las Salidas y Partes Diarios" : `📋 Mis Salidas (${esc(state.user.unidad)})`;
+  if (state.selectedDay) {
+    title += ` · Día: ${state.selectedDay} <button class="btn alt noprint" style="padding:2px 8px;font-size:11px" onclick="clearDayFilter()">Ver todas</button>`;
+  }
+  $("#tableTitle").innerHTML = title;
+  $("#filteredCountBadge").textContent = `${list.length} registros`;
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="11" class="empty-state">No se encontraron registros con los criterios seleccionados.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(r => {
+    const diff = (Number(r.kmFin) || 0) - (Number(r.kmIni) || 0);
+    const isMach = isHeavyMachinery(r.unidad);
+    const unitColor = getUnitColor(r.unidad);
+    const unitBadge = getUnitBadge(r.unidad);
+    const unitLabel = isMach ? "hrs" : "km";
+
+    const fallasHtml = (r.fallas && r.fallas.length)
+      ? `<br><span class="falla-badge">⚠️ Fallas: ${esc(r.fallas.join(", "))}</span>`
+      : `<br><small style="color:var(--ok);font-weight:600">✔️ Pre-operacional Conforme</small>`;
+
+    return `
+      <tr>
+        <td style="white-space:nowrap;font-weight:600">${esc(r.fecha)}</td>
+        <td>
+          <span class="chip" style="background:${unitColor}">${esc(r.unidad)}</span><br>
+          <small style="color:var(--mut);font-weight:600">${unitBadge} · ${esc(r.placa || "")}</small>
+        </td>
+        <td><b>${esc(r.conductor)}</b></td>
+        <td style="white-space:nowrap">${esc(r.salida || "")} – ${esc(r.llegada || "")}</td>
+        <td class="n">${(Number(r.kmIni) || 0).toLocaleString()}</td>
+        <td class="n">${(Number(r.kmFin) || 0).toLocaleString()}</td>
+        <td class="n"><span class="badge-diff">+${diff.toLocaleString()} ${unitLabel}</span></td>
+        <td class="n">${(Number(r.combustible) || 0).toFixed(1)} gal</td>
+        <td style="max-width:220px">${esc(r.destino || "Sin destino")}</td>
+        <td style="max-width:260px">
+          ${esc(r.obs || "-")}
+          ${fallasHtml}
+        </td>
+        <td class="noprint" style="text-align:center;white-space:nowrap">
+          <button class="btn edit" onclick="openEditRegModal('${r.id}')" title="Editar registro y revisión">✏️</button>
+          ${isAdmin ? `<button class="btn warn" onclick="deleteReg('${r.id}')" title="Eliminar registro">🗑️</button>` : ""}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function clearDayFilter() {
+  state.selectedDay = null;
+  renderTable();
+}
+
+// --- ACCIONES DE REGISTRO (EDITAR / ELIMINAR) ---
+function openEditRegModal(id) {
+  const r = state.data.registros.find(x => x.id === id);
+  if (!r) return;
+
+  $("#editRegId").value = r.id;
+  $("#editFecha").value = r.fecha;
+  $("#editUnidad").value = r.unidad;
+  $("#editSalida").value = r.salida || "";
+  $("#editLlegada").value = r.llegada || "";
+  $("#editKmIni").value = r.kmIni;
+  $("#editKmFin").value = r.kmFin;
+  $("#editComb").value = r.combustible || 0;
+  $("#editDestino").value = r.destino || "";
+  $("#editObs").value = r.obs || "";
+
+  const items = getChecklistItems(r.unidad);
+  const currentFallas = r.fallas || [];
+  const modalChk = $("#modalEditChkContainer");
+  modalChk.innerHTML = items.map((item, idx) => {
+    const isChecked = currentFallas.includes(item);
+    return `
+      <label class="chk-item">
+        <input type="checkbox" data-text="${esc(item)}" ${isChecked ? 'checked' : ''}>
+        <span style="${isChecked ? 'color:var(--bad);font-weight:700' : ''}">${esc(item)}</span>
+      </label>
+    `;
+  }).join("");
+
+  $("#modalEditReg").hidden = false;
+}
+
+async function handleSaveEditReg(e) {
+  e.preventDefault();
+  const id = $("#editRegId").value;
+  const idx = state.data.registros.findIndex(x => x.id === id);
+  if (idx === -1) return;
+
+  const fallasActualizadas = Array.from($$("#modalEditChkContainer input:checked")).map(i => i.dataset.text);
+
+  const update = {
+    fecha: $("#editFecha").value,
+    unidad: $("#editUnidad").value,
+    salida: $("#editSalida").value,
+    llegada: $("#editLlegada").value,
+    kmIni: Number($("#editKmIni").value),
+    kmFin: Number($("#editKmFin").value),
+    combustible: Number($("#editComb").value) || 0,
+    destino: $("#editDestino").value.trim(),
+    obs: $("#editObs").value.trim(),
+    fallas: fallasActualizadas
+  };
+
+  if (state.isApiMode) {
+    try {
+      const res = await fetch(`/api/registros/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(update)
+      });
+      if (!res.ok) throw new Error("Error en servidor");
+      const json = await res.json();
+      state.data.registros[idx] = json.registro;
+    } catch {
+      toast("Error al actualizar en el servidor.");
+      return;
+    }
+  } else {
+    state.data.registros[idx] = { ...state.data.registros[idx], ...update };
+    persistData();
+  }
+
+  closeModal("modalEditReg");
+  toast("Registro y revisión actualizados.");
+  renderAll();
+}
+
+async function deleteReg(id) {
+  if (!confirm("¿Estás seguro de que deseas eliminar este registro de salida?")) return;
+
+  if (state.isApiMode) {
+    try {
+      const res = await fetch(`/api/registros/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Error al eliminar");
+    } catch {
+      toast("Error al eliminar en el servidor.");
+      return;
+    }
+  }
+  state.data.registros = state.data.registros.filter(x => x.id !== id);
+  persistData();
+  toast("Registro eliminado.");
+  renderAll();
+}
+
+// --- CALENDARIO INTERACTIVO ---
+function renderCalendar() {
+  const mount = $("#calendarMount");
+  const y = state.currentMonth.getFullYear();
+  const m = state.currentMonth.getMonth();
+
+  const monthName = state.currentMonth.toLocaleDateString("es-PE", { month: "long", year: "numeric" });
+  $("#calMonthLabel").textContent = monthName;
+
+  const firstDayIndex = new Date(y, m, 1).getDay();
+  const daysInMonth = new Date(y, m + 1, 0).getDate();
+  const pad = n => String(n).padStart(2, '0');
+  const hoy = hoyStr();
+
+  let html = `<div class="cal-grid">`;
+  const weekDays = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
+  weekDays.forEach(wd => html += `<div class="cal-weekday">${wd}</div>`);
+
+  for (let i = 0; i < firstDayIndex; i++) {
+    html += `<div></div>`;
+  }
+
+  for (let d = 1; d <= daysInMonth; d++) {
+    const fStr = `${y}-${pad(m + 1)}-${pad(d)}`;
+    const dayRegs = (state.data.registros || []).filter(r => r.fecha === fStr);
+    const unitsOnDay = [...new Set(dayRegs.map(r => r.unidad))];
+    const isToday = fStr === hoy;
+    const isSelected = fStr === state.selectedDay;
+
+    html += `
+      <div class="cal-day ${isToday ? 'today' : ''} ${isSelected ? 'selected' : ''}" onclick="selectCalDay('${fStr}')">
+        <div class="cal-day-num">${d}</div>
+        <div class="cal-day-chips">
+          ${unitsOnDay.map(u => `<span class="cal-chip" style="background:${getUnitColor(u)}">${esc(u)}</span>`).join("")}
+        </div>
+      </div>
+    `;
+  }
+  html += `</div>`;
+  mount.innerHTML = html;
+}
+
+function selectCalDay(dateStr) {
+  state.selectedDay = (state.selectedDay === dateStr) ? null : dateStr;
+  switchTab("tabRegistros");
+  renderTable();
+}
+
+// --- MANTENIMIENTO DIFERENCIADO: VEHÍCULOS VS MAQUINARIA PESADA ---
+function renderMantenimiento() {
+  const container = $("#mantenimientoCardsContainer");
+  const units = (state.data.vehiculos || []).map(v => v.unidad);
+  const isAdmin = state.user.rol === "admin";
+
+  container.innerHTML = units.map(u => {
+    const veh = (state.data.vehiculos || []).find(v => v.unidad === u) || {};
+    const isMach = isHeavyMachinery(u);
+    const oil = getOilStatus(u);
+    const m = (state.data.mantenimiento || {})[u] || {};
+    const unitColor = getUnitColor(u);
+    const unitBadge = getUnitBadge(u);
+
+    let statusPill = "";
+    if (oil.cls === "bad") {
+      statusPill = `<span style="background:var(--bad);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">🚨 VENCIDO (+${-oil.kmRestantes} ${oil.unitLabel})</span>`;
+    } else if (oil.cls === "warn") {
+      statusPill = `<span style="background:var(--amber);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">⚠️ PRÓXIMO (${oil.kmRestantes} ${oil.unitLabel})</span>`;
+    } else {
+      statusPill = `<span style="background:var(--ok);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">✔️ AL DÍA</span>`;
+    }
+
+    // Sección específica para Maquinaria Pesada vs Vehículos
+    const machSpecificBox = isMach ? `
+      <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:10px;font-size:12.5px">
+        <b style="color:#92400e">🚜 Protocolo de Maquinaria Pesada:</b>
+        <ul style="margin:4px 0 0;padding-left:18px;color:#78350f">
+          <li><b>Engrase de Pines y Articulaciones:</b> Cada 50 - 100 horas / Semanal</li>
+          <li><b>Sistema Hidráulico & Filtros:</b> Revisión de mandos y pistón de tolva / pluma</li>
+          <li><b>Último Engrase Registrado:</b> ${esc(veh.ultimoEngraseFecha || '12/11/2026')}</li>
+        </ul>
+      </div>
+    ` : '';
+
+    return `
+      <div class="card" style="border-top:6px solid ${unitColor}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div>
+            <h2 style="font-size:17px;margin:0 0 2px">${esc(u)} · ${esc(veh.placa || "")}</h2>
+            <div style="margin-bottom:6px">
+              <span class="category-badge ${isMach ? 'machinery' : 'vehicle'}">${unitBadge}</span>
+            </div>
+            <p style="margin:0 0 8px;color:var(--mut);font-size:13px">
+              ${esc(veh.marca || "")} ${esc(veh.modelo || "")} | Registro actual: <b>${oil.currentOdo.toLocaleString()} ${oil.unitLabel}</b>
+            </p>
+          </div>
+          <div>${statusPill}</div>
+        </div>
+
+        <!-- Caja de Conteo de Aceite -->
+        <div class="oil-box">
+          <div class="oil-header">
+            <span>${isMach ? '🚜 Aceite Diésel Pesado' : '🚙 Cambio de Aceite'} (${oil.intervalo.toLocaleString()} ${oil.unitLabel})</span>
+            <span style="font-size:12px">${oil.pct}% cumplido</span>
+          </div>
+
+          <div class="progress-container">
+            <div class="progress-bar ${oil.cls}" style="width: ${oil.pct}%;"></div>
+          </div>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;font-size:12px;margin-top:8px">
+            <div><b>Última Fecha:</b> <span style="color:#b45309;font-weight:700">${esc(oil.fechaUltimo)}</span></div>
+            <div><b>Registro al Cambio:</b> ${oil.ultimoKm.toLocaleString()} ${oil.unitLabel}</div>
+            <div><b>Uso con este aceite:</b> <b>${oil.kmRecorridos.toLocaleString()}</b> / ${oil.intervalo.toLocaleString()} ${oil.unitLabel}</div>
+            <div><b>Próximo a:</b> <b>${oil.proxKm.toLocaleString()} ${oil.unitLabel}</b></div>
+          </div>
+          <div style="font-size:11.5px;color:var(--mut);margin-top:6px">
+            Lubricante: <b>${esc(oil.tipoAceite)}</b> | Taller: <b>${esc(oil.taller)}</b>
+          </div>
+
+          <button class="btn ${isMach ? 'machinery-btn' : 'oil-btn'}" style="margin-top:10px;width:100%" onclick="openOilModal('${esc(u)}')">
+            🛠️ Registrar Nuevo Mantenimiento / Aceite
+          </button>
+        </div>
+
+        ${machSpecificBox}
+
+        <label style="font-weight:700;font-size:12.5px;margin-top:10px">Otros Mantenimientos Programados</label>
+        <input data-maint-tipo="${esc(u)}" value="${esc(m.tipo || (isMach ? 'Engrase de chasis y filtros hidráulicos' : 'Alineación y balanceo'))}" ${!isAdmin ? 'disabled' : ''}>
+
+        <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6px">
+          <div>
+            <label>Próximo a (${oil.unitLabel})</label>
+            <input data-maint-km="${esc(u)}" type="number" min="0" value="${m.proxKm || ''}" ${!isAdmin ? 'disabled' : ''}>
+          </div>
+          <div>
+            <label>Fecha Límite</label>
+            <input data-maint-date="${esc(u)}" type="date" value="${m.fechaLimite || ''}" ${!isAdmin ? 'disabled' : ''}>
+          </div>
+        </div>
+
+        ${isAdmin ? `<button class="btn alt" style="margin-top:10px;width:100%" onclick="saveMantenimientoGeneral('${esc(u)}')">💾 Guardar Plan Adicional</button>` : ''}
+      </div>
+    `;
+  }).join("");
+}
+
+// Modal de mantenimiento / aceite
+function openOilModal(unidad) {
+  const veh = (state.data.vehiculos || []).find(v => v.unidad === unidad);
+  const currentOdo = getOdometer(unidad);
+  const isMach = isHeavyMachinery(unidad);
+  const interval = veh ? Number(veh.intervaloAceiteKm) || (isMach ? 250 : 5000) : 5000;
+
+  $("#oilUnidad").value = unidad;
+  $("#oilFecha").value = hoyStr();
+  $("#oilKm").value = currentOdo;
+  $("#oilProxKm").value = currentOdo + interval;
+  $("#oilTipo").value = veh && veh.tipoAceite ? veh.tipoAceite : (isMach ? "15W-40 CI-4 Pesado" : "15W-40 Sintético");
+  $("#oilTaller").value = veh && veh.tallerAceite ? veh.tallerAceite : (isMach ? "Taller Pesado Minero" : "Taller Central");
+  $("#oilNotas").value = isMach ? "Engrase de pines y verificación de mandos hidráulicos" : "Cambio de aceite y filtro";
+
+  $("#modalMaintTitle").textContent = isMach ? `🚜 Mantenimiento: ${unidad}` : `🛢️ Cambio de Aceite: ${unidad}`;
+  $("#labelOilKm").textContent = isMach ? "Horómetro / Km al Realizar" : "Kilometraje al Realizar";
+  $("#labelOilProxKm").textContent = `Próximo (+${interval} ${isMach ? 'hrs' : 'km'})`;
+
+  $("#modalCambioAceite").hidden = false;
+}
+
+async function handleSaveOilChange(e) {
+  e.preventDefault();
+  const unidad = $("#oilUnidad").value;
+  const fecha = $("#oilFecha").value;
+  const km = Number($("#oilKm").value);
+  const tipoAceite = $("#oilTipo").value.trim();
+  const taller = $("#oilTaller").value.trim();
+  const notas = $("#oilNotas").value.trim();
+  const isMach = isHeavyMachinery(unidad);
+
+  const payload = { unidad, fecha, km, tipoAceite, taller, notas };
+
+  if (state.isApiMode) {
+    try {
+      await fetch("/api/vehiculos/cambio-aceite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch {
+      toast("Error al guardar en el servidor.");
+      return;
+    }
+  }
+
+  const vIdx = (state.data.vehiculos || []).findIndex(v => v.unidad === unidad);
+  if (vIdx >= 0) {
+    const interval = Number(state.data.vehiculos[vIdx].intervaloAceiteKm) || (isMach ? 250 : 5000);
+    state.data.vehiculos[vIdx].ultimoCambioAceiteFecha = fecha;
+    state.data.vehiculos[vIdx].ultimoCambioAceiteKm = km;
+    state.data.vehiculos[vIdx].proximoCambioAceiteKm = km + interval;
+    state.data.vehiculos[vIdx].tipoAceite = tipoAceite;
+    state.data.vehiculos[vIdx].tallerAceite = taller;
+    if (isMach) {
+      state.data.vehiculos[vIdx].ultimoEngraseFecha = fecha;
+    }
+  }
+
+  if (!state.data.mantenimiento) state.data.mantenimiento = {};
+  state.data.mantenimiento[unidad] = {
+    ...state.data.mantenimiento[unidad],
+    tipo: isMach ? `Servicio de Motor Pesado y Engrase` : `Cambio de Aceite (${tipoAceite})`,
+    proxKm: km + (isMach ? 250 : 5000),
+    ultimoCambioFecha: fecha,
+    ultimoCambioKm: km,
+    taller: taller
+  };
+
+  persistData();
+  closeModal("modalCambioAceite");
+  toast(`Mantenimiento guardado para ${unidad}`);
+  renderAll();
+  renderMantenimiento();
+  renderVehiculos();
+}
+
+async function saveMantenimientoGeneral(unidad) {
+  const tipo = document.querySelector(`[data-maint-tipo="${unidad}"]`).value.trim();
+  const proxKm = Number(document.querySelector(`[data-maint-km="${unidad}"]`).value) || 0;
+  const fechaLimite = document.querySelector(`[data-maint-date="${unidad}"]`).value;
+
+  const payload = { unidad, tipo, proxKm, fechaLimite };
+
+  if (state.isApiMode) {
+    try {
+      await fetch("/api/mantenimiento", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+    } catch {
+      toast("Error al guardar en el servidor.");
+      return;
+    }
+  }
+
+  if (!state.data.mantenimiento) state.data.mantenimiento = {};
+  state.data.mantenimiento[unidad] = { ...state.data.mantenimiento[unidad], ...payload };
+  persistData();
+
+  toast(`Plan guardado para ${unidad}`);
+  renderAll();
+  renderMantenimiento();
+}
+
+// --- GESTIÓN DE VEHÍCULOS Y MAQUINARIA (ADMIN) ---
+function renderVehiculos() {
+  const tbody = $("#vehiculosTableBody");
+  const list = state.data.vehiculos || [];
+  const isAdmin = state.user.rol === "admin";
+
+  if (!list.length) {
+    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay equipos registrados.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = list.map(v => {
+    const isMach = isHeavyMachinery(v.unidad);
+    const oil = getOilStatus(v.unidad);
+    const unitColor = getUnitColor(v.unidad);
+    const unitBadge = getUnitBadge(v.unidad);
+
+    let statusPill = "";
+    if (oil.cls === "bad") {
+      statusPill = `<span class="chip" style="background:var(--bad)">🚨 Vencido (+${-oil.kmRestantes} ${oil.unitLabel})</span>`;
+    } else if (oil.cls === "warn") {
+      statusPill = `<span class="chip" style="background:var(--amber)">⚠️ Próximo (${oil.kmRestantes} ${oil.unitLabel})</span>`;
+    } else {
+      statusPill = `<span class="chip" style="background:var(--ok)">✔️ Al día (${oil.kmRestantes} ${oil.unitLabel})</span>`;
+    }
+
+    return `
+      <tr>
+        <td>
+          <span class="chip" style="background:${unitColor}">${esc(v.unidad)}</span>
+        </td>
+        <td>
+          <span class="category-badge ${isMach ? 'machinery' : 'vehicle'}">${unitBadge}</span>
+        </td>
+        <td><b>${esc(v.placa)}</b></td>
+        <td>${esc(v.marca || "")} ${esc(v.modelo || "")}<br><small style="color:var(--mut)">${esc(v.combustibleTipo || "Diésel")}</small></td>
+        <td class="n"><b>${oil.currentOdo.toLocaleString()} ${oil.unitLabel}</b></td>
+        <td>
+          <b>📅 ${esc(oil.fechaUltimo)}</b><br>
+          <small style="color:var(--mut)">A los ${oil.ultimoKm.toLocaleString()} ${oil.unitLabel} (${oil.kmRecorridos.toLocaleString()} ${oil.unitLabel} de uso)</small>
+        </td>
+        <td>
+          <b>${oil.proxKm.toLocaleString()} ${oil.unitLabel}</b><br>
+          ${statusPill}
+        </td>
+        <td class="noprint" style="text-align:center;white-space:nowrap">
+          <button class="btn edit" onclick="editVehicle('${esc(v.unidad)}')">✏️ Editar</button>
+          <button class="btn ${isMach ? 'machinery-btn' : 'oil-btn'}" onclick="openOilModal('${esc(v.unidad)}')">🛠️ Servicio</button>
+          ${isAdmin ? `<button class="btn warn" onclick="deleteVehicle('${esc(v.unidad)}')">🗑️ Eliminar</button>` : ''}
+        </td>
+      </tr>
+    `;
+  }).join("");
+}
+
+function onVehCategoriaChange() {
+  const cat = $("#vehCategoria").value;
+  const isMach = cat === "maquinaria";
+  $("#labelVehOdo").textContent = isMach ? "Horómetro Inicial (Hrs o Km)" : "Odómetro Inicial (km)";
+  $("#labelVehUltimoKm").textContent = isMach ? "Horas o Km del Último Cambio" : "Kilometraje del Último Cambio";
+  $("#labelVehIntervalo").textContent = isMach ? "Intervalo de Servicio (ej. 250 hrs)" : "Intervalo de Servicio (5,000 km)";
+  $("#vehIntervaloKm").value = isMach ? 250 : 5000;
+  $("#vehTipoAceite").value = isMach ? "15W-40 CI-4 Pesado" : "15W-40 Sintético";
+}
+
+function openVehicleModal() {
+  $("#vehCategoria").value = "vehiculo";
+  onVehCategoriaChange();
+  $("#vehUnidad").value = "";
+  $("#vehPlaca").value = "";
+  $("#vehMarca").value = "";
+  $("#vehModelo").value = "";
+  $("#vehCombustible").value = "Diésel";
+  $("#vehOdo").value = 0;
+  $("#vehUltimoAceiteFecha").value = hoyStr();
+  $("#vehUltimoAceiteKm").value = 0;
+  $("#modalVehiculo").hidden = false;
+}
+
+function editVehicle(unidad) {
+  const v = (state.data.vehiculos || []).find(x => x.unidad === unidad);
+  if (!v) return;
+  const isMach = v.categoria === "maquinaria" || isHeavyMachinery(unidad);
+  $("#vehCategoria").value = isMach ? "maquinaria" : "vehiculo";
+  onVehCategoriaChange();
+
+  $("#vehUnidad").value = v.unidad;
+  $("#vehPlaca").value = v.placa;
+  $("#vehMarca").value = v.marca || "";
+  $("#vehModelo").value = v.modelo || "";
+  $("#vehCombustible").value = v.combustibleTipo || "Diésel";
+  $("#vehOdo").value = v.horometroInicial || v.odometroInicial || 0;
+  $("#vehUltimoAceiteFecha").value = v.ultimoCambioAceiteFecha || "";
+  $("#vehUltimoAceiteKm").value = v.ultimoCambioAceiteKm || 0;
+  $("#vehIntervaloKm").value = v.intervaloAceiteKm || (isMach ? 250 : 5000);
+  $("#vehTipoAceite").value = v.tipoAceite || "";
+  $("#modalVehiculo").hidden = false;
+}
+
+async function handleSaveVehicle(e) {
+  e.preventDefault();
+  const cat = $("#vehCategoria").value;
+  const isMach = cat === "maquinaria";
+
+  const v = {
+    unidad: $("#vehUnidad").value.trim(),
+    categoria: cat,
+    placa: $("#vehPlaca").value.trim().toUpperCase(),
+    marca: $("#vehMarca").value.trim(),
+    modelo: $("#vehModelo").value.trim(),
+    combustibleTipo: $("#vehCombustible").value,
+    odometroInicial: Number($("#vehOdo").value) || 0,
+    horometroInicial: isMach ? Number($("#vehOdo").value) || 0 : 0,
+    tipoMedicion: isMach ? "horas" : "km",
+    ultimoCambioAceiteFecha: $("#vehUltimoAceiteFecha").value || hoyStr(),
+    ultimoCambioAceiteKm: Number($("#vehUltimoAceiteKm").value) || 0,
+    intervaloAceiteKm: Number($("#vehIntervaloKm").value) || (isMach ? 250 : 5000),
+    proximoCambioAceiteKm: (Number($("#vehUltimoAceiteKm").value) || 0) + (Number($("#vehIntervaloKm").value) || (isMach ? 250 : 5000)),
+    tipoAceite: $("#vehTipoAceite").value.trim() || (isMach ? "15W-40 CI-4 Pesado" : "15W-40 Sintético")
+  };
+
+  if (state.isApiMode) {
+    try {
+      await fetch("/api/vehiculos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(v)
+      });
+    } catch {
+      toast("Error al guardar vehículo.");
+      return;
+    }
+  }
+
+  if (!state.data.vehiculos) state.data.vehiculos = [];
+  const idx = state.data.vehiculos.findIndex(x => x.unidad.toLowerCase() === v.unidad.toLowerCase());
+  if (idx >= 0) state.data.vehiculos[idx] = { ...state.data.vehiculos[idx], ...v };
+  else state.data.vehiculos.push(v);
+
+  persistData();
+  populateUnidadesSelect();
+  closeModal("modalVehiculo");
+  toast("Equipo guardado correctamente.");
+  renderVehiculos();
+  renderAll();
+}
+
+async function deleteVehicle(unidad) {
+  if (state.user.rol !== "admin") {
+    alert("Solo el administrador puede eliminar equipos.");
+    return;
+  }
+  const v = (state.data.vehiculos || []).find(x => x.unidad === unidad);
+  const placa = v ? v.placa : "";
+  if (!confirm(`¿Estás seguro de que deseas ELIMINAR "${unidad}" (${placa}) del sistema?`)) {
+    return;
+  }
+
+  if (state.isApiMode) {
+    try {
+      await fetch(`/api/vehiculos/${encodeURIComponent(unidad)}`, { method: "DELETE" });
+    } catch {
+      toast("Error al eliminar en el servidor.");
+      return;
+    }
+  }
+
+  state.data.vehiculos = (state.data.vehiculos || []).filter(x => x.unidad !== unidad);
+  if (state.data.mantenimiento && state.data.mantenimiento[unidad]) {
+    delete state.data.mantenimiento[unidad];
+  }
+
+  persistData();
+  populateUnidadesSelect();
+  toast(`Equipo "${unidad}" eliminado.`);
+  renderVehiculos();
+  renderAll();
+}
+
+// --- GESTIÓN DE USUARIOS Y CONDUCTORES (ADMIN) ---
+function renderUsuarios() {
+  const tbody = $("#usuariosTableBody");
+  const list = state.data.usuarios || [];
+
+  tbody.innerHTML = list.map(u => `
+    <tr>
+      <td><b>${esc(u.usuario)}</b></td>
+      <td>${esc(u.nombre)}</td>
+      <td><span class="user-role" style="background:#e2e8f0;color:var(--navy);padding:2px 8px;border-radius:99px;font-weight:700;font-size:11px">${esc(u.rol)}</span></td>
+      <td>${esc(u.unidad || "Todas")}</td>
+      <td>${esc(u.placa || "-")}</td>
+      <td class="noprint" style="text-align:center">
+        <button class="btn edit" onclick="editUser('${u.id}')">✏️ Editar</button>
+        ${u.usuario !== 'jushr' ? `<button class="btn warn" onclick="deleteUser('${u.id}')">🗑️</button>` : ''}
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openUserModal() {
+  $("#editUserId").value = "";
+  $("#modalUserTitle").textContent = "Registrar Conductor / Operador";
+  $("#userUsuario").value = "";
+  $("#userNombre").value = "";
+  $("#userPass").value = "";
+  $("#userRol").value = "driver";
+  $("#modalUser").hidden = false;
+}
+
+function editUser(id) {
+  const u = (state.data.usuarios || []).find(x => x.id === id);
+  if (!u) return;
+  $("#editUserId").value = u.id;
+  $("#modalUserTitle").textContent = "Editar Usuario: " + u.usuario;
+  $("#userUsuario").value = u.usuario;
+  $("#userNombre").value = u.nombre;
+  $("#userPass").value = u.pass || "";
+  $("#userRol").value = u.rol;
+  $("#userUnidad").value = u.unidad || "Todas";
+  $("#modalUser").hidden = false;
+}
+
+async function handleSaveUser(e) {
+  e.preventDefault();
+  const id = $("#editUserId").value;
+  const userPayload = {
+    id: id || "u-" + Date.now(),
+    usuario: $("#userUsuario").value.trim().toLowerCase(),
+    nombre: $("#userNombre").value.trim(),
+    pass: $("#userPass").value,
+    rol: $("#userRol").value,
+    unidad: $("#userUnidad").value
+  };
+
+  const veh = (state.data.vehiculos || []).find(v => v.unidad === userPayload.unidad);
+  userPayload.placa = veh ? veh.placa : "";
+
+  if (state.isApiMode) {
+    try {
+      await fetch("/api/usuarios", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(userPayload)
+      });
+    } catch {
+      toast("Error al guardar usuario.");
+      return;
+    }
+  }
+
+  if (!state.data.usuarios) state.data.usuarios = [];
+  const idx = state.data.usuarios.findIndex(x => x.id === userPayload.id || x.usuario.toLowerCase() === userPayload.usuario);
+  if (idx >= 0) state.data.usuarios[idx] = { ...state.data.usuarios[idx], ...userPayload };
+  else state.data.usuarios.push(userPayload);
+
+  persistData();
+  closeModal("modalUser");
+  toast("Usuario guardado con éxito.");
+  renderUsuarios();
+}
+
+async function deleteUser(id) {
+  const u = state.data.usuarios.find(x => x.id === id);
+  if (!u) return;
+  if (u.usuario === 'jushr') {
+    alert("No se puede eliminar el administrador principal 'jushr'.");
+    return;
+  }
+  if (!confirm(`¿Estás seguro de eliminar al usuario ${u.usuario}?`)) return;
+
+  if (state.isApiMode) {
+    try {
+      await fetch(`/api/usuarios/${id}`, { method: "DELETE" });
+    } catch {
+      toast("Error al eliminar usuario.");
+      return;
+    }
+  }
+
+  state.data.usuarios = state.data.usuarios.filter(u => u.id !== id);
+  persistData();
+  toast("Usuario eliminado.");
+  renderUsuarios();
+}
+
+// --- CONFIGURACIÓN DE PUNTOS DE INSPECCIÓN ---
+function openConfigChecklistModal() {
+  renderConfigChecklistList();
+  $("#modalConfigChecklist").hidden = false;
+}
+
+function renderConfigChecklistList() {
+  const items = getChecklistItems();
+  const container = $("#configChkListContainer");
+  container.innerHTML = items.map((item, idx) => `
+    <div style="display:flex;align-items:center;justify-content:space-between;background:#f8fafc;padding:8px 12px;border-radius:6px;border:1px solid var(--line)">
+      <span style="font-size:13px;font-weight:500">${idx + 1}. ${esc(item)}</span>
+      <button class="btn warn" style="padding:2px 8px;font-size:11px" onclick="removeChecklistItem(${idx})">🗑️ Quitar</button>
+    </div>
+  `).join("");
+}
+
+function removeChecklistItem(idx) {
+  if (!confirm("¿Eliminar este punto de inspección?")) return;
+  if (!state.data.checklistItems) state.data.checklistItems = [...DEFAULT_CHECKLIST_VEHICLE];
+  state.data.checklistItems.splice(idx, 1);
+  saveChecklistConfig();
+}
+
+async function saveChecklistConfig() {
+  if (state.isApiMode) {
+    try {
+      await fetch("/api/checklist-items", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ items: state.data.checklistItems })
+      });
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  persistData();
+  initChecklist();
+  renderConfigChecklistList();
+  toast("Puntos de inspección actualizados.");
+}
+
+// --- EXPORTACIÓN A EXCEL Y CSV ---
+function exportExcel() {
+  if (typeof XLSX === "undefined") {
+    alert("Librería SheetJS no disponible. Usa la exportación en CSV.");
+    return;
+  }
+  const f = getFilteredRecords();
+
+  const regRows = f.map(r => {
+    const isMach = isHeavyMachinery(r.unidad);
+    return {
+      "Fecha": r.fecha,
+      "Categoría": isMach ? "Maquinaria Pesada" : "Vehículo Liviano",
+      "Unidad": r.unidad,
+      "Placa": r.placa,
+      "Conductor / Operador": r.conductor,
+      "Salida": r.salida,
+      "Llegada": r.llegada,
+      "Inicial": r.kmIni,
+      "Final": r.kmFin,
+      "Recorrido / Horas": (Number(r.kmFin) || 0) - (Number(r.kmIni) || 0),
+      "Combustible (gal)": Number(r.combustible) || 0,
+      "Destino / Frente de Obra": r.destino,
+      "Fallas Preoperacionales": (r.fallas || []).join("; ") || "Conforme (Sin fallas)",
+      "Observaciones": r.obs
+    };
+  });
+
+  const allUnits = [...new Set(f.map(x => x.unidad))].sort();
+  const summaryRows = allUnits.map(u => {
+    const unitRegs = f.filter(x => x.unidad === u);
+    const sumKm = unitRegs.reduce((acc, x) => acc + ((Number(x.kmFin) || 0) - (Number(x.kmIni) || 0)), 0);
+    const sumComb = unitRegs.reduce((acc, x) => acc + (Number(x.combustible) || 0), 0);
+    const oil = getOilStatus(u);
+    const isMach = isHeavyMachinery(u);
+    return {
+      "Unidad": u,
+      "Categoría": isMach ? "Maquinaria Pesada" : "Vehículo Liviano",
+      "Salidas / Labores": unitRegs.length,
+      "Total Recorrido (km/hrs)": sumKm,
+      "Total Combustible (gal)": Number(sumComb.toFixed(1)),
+      "Rendimiento": sumComb > 0 ? Number((sumKm / sumComb).toFixed(1)) : 0,
+      "Último Servicio": oil ? oil.fechaUltimo : "-",
+      "Registro Último Servicio": oil ? oil.ultimoKm : 0,
+      "Próximo Servicio": oil ? oil.proxKm : 0
+    };
+  });
+
+  const wb = XLSX.utils.book_new();
+  const wsRegs = XLSX.utils.json_to_sheet(regRows);
+  const wsSum = XLSX.utils.json_to_sheet(summaryRows);
+
+  XLSX.utils.book_append_sheet(wb, wsRegs, "Bitácora Operacional");
+  XLSX.utils.book_append_sheet(wb, wsSum, "Resumen Flota y Maquinaria");
+
+  XLSX.writeFile(wb, `bitacora-operacional-${hoyStr()}.xlsx`);
+  toast("Archivo Excel generado con éxito.");
+}
+
+function exportCsv() {
+  const f = getFilteredRecords();
+  const headers = ["Fecha", "Categoría", "Unidad", "Placa", "Conductor/Operador", "Salida", "Llegada", "Inicial", "Final", "Recorrido", "Combustible (gal)", "Destino", "Fallas", "Observaciones"];
+  const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+
+  const rows = f.map(x => [
+    x.fecha,
+    isHeavyMachinery(x.unidad) ? "Maquinaria Pesada" : "Vehículo Liviano",
+    x.unidad,
+    x.placa,
+    x.conductor,
+    x.salida,
+    x.llegada,
+    x.kmIni,
+    x.kmFin,
+    (Number(x.kmFin) || 0) - (Number(x.kmIni) || 0),
+    x.combustible,
+    x.destino,
+    (x.fallas || []).join("; "),
+    x.obs
+  ].map(q).join(","));
+
+  const content = "\ufeff" + [headers.map(q).join(","), ...rows].join("\n");
+  const blob = new Blob([content], { type: "text/csv;charset=utf-8;" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `bitacora-operacional-${hoyStr()}.csv`;
+  a.click();
+  toast("Archivo CSV generado.");
+}
+
+// --- RESPALDO Y RESTAURACIÓN ---
+function downloadBackupJson() {
+  const jsonStr = JSON.stringify(state.data, null, 2);
+  const blob = new Blob([jsonStr], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `bitacora-backup-${hoyStr()}.json`;
+  a.click();
+  toast("Respaldo descargado.");
+}
+
+function restoreBackupJson() {
+  const fileInput = $("#inputRestoreBackup");
+  if (!fileInput.files || !fileInput.files[0]) {
+    alert("Por favor selecciona un archivo .json.");
+    return;
+  }
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      if (!parsed.usuarios || !Array.isArray(parsed.usuarios)) {
+        throw new Error("El archivo no tiene una estructura válida.");
+      }
+      if (state.isApiMode) {
+        await fetch("/api/backup/restore", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(parsed)
+        });
+      }
+      state.data = parsed;
+      persistData();
+      closeModal("modalBackup");
+      toast("Base de datos restaurada.");
+      populateUnidadesSelect();
+      initChecklist();
+      applyAppearance();
+      renderAll();
+    } catch (err) {
+      alert("Error al restaurar: " + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+function closeModal(id) {
+  $("#" + id).hidden = true;
+}
+</script>
+</body>
+</html>
