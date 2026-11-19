@@ -410,7 +410,7 @@ const server = http.createServer(async (req, res) => {
         if (!db.mantenimiento) db.mantenimiento = {};
         db.mantenimiento[unidad] = {
           ...db.mantenimiento[unidad],
-          tipo: `Cambio de Aceite (${tipoAceite || 'Sintético'})`,
+          tipo: 'Cambio de Aceite',
           proxKm: proxAceite,
           taller: taller || (db.mantenimiento[unidad] && db.mantenimiento[unidad].taller) || '',
           ultimoCambioFecha: fechaVal,

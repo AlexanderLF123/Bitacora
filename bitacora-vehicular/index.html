@@ -810,15 +810,10 @@ td.n {
               <label for="formKmFin" id="labelKmFin">Km final (o Horómetro)</label>
               <input id="formKmFin" type="number" min="0" step="1" required>
             </div>
-            <div>
-              <label for="formComb">Combustible cargado (galones)</label>
-              <input id="formComb" type="number" min="0" step="0.1" placeholder="0.0">
-            </div>
           </div>
 
           <div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <span id="calcDiffBadge" style="font-weight:700;font-size:14px;color:var(--navy)"></span>
-            <span id="calcRendimientoBadge" style="font-weight:600;font-size:13px;color:var(--ok)"></span>
           </div>
 
           <!-- Checklist de Inspección 360 adaptado para Vehículos y Maquinaria -->
@@ -908,7 +903,6 @@ td.n {
                 <th style="text-align:right">Inicial</th>
                 <th style="text-align:right">Final</th>
                 <th style="text-align:right">Recorrido / Horas</th>
-                <th style="text-align:right">Combustible</th>
                 <th>Destino / Frente de Obra</th>
                 <th>Observaciones / Inspección</th>
                 <th class="noprint" style="text-align:center">Acciones</th>
@@ -1036,10 +1030,6 @@ td.n {
           <label for="editKmFin">Final (Km/Hrs)</label>
           <input id="editKmFin" type="number" min="0" required>
         </div>
-        <div>
-          <label for="editComb">Combustible (gal)</label>
-          <input id="editComb" type="number" min="0" step="0.1">
-        </div>
       </div>
 
       <div class="checklist-container" style="margin-top:14px">
@@ -1092,15 +1082,9 @@ td.n {
           <input id="oilProxKm" type="number" readonly style="background:#f1f5f9;font-weight:700">
         </div>
       </div>
-      <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6px">
-        <div>
-          <label for="oilTipo">Tipo de Servicio / Lubricante</label>
-          <input id="oilTipo" placeholder="ej. 15W-40 Sintético, Engrase general..." required>
-        </div>
-        <div>
-          <label for="oilTaller">Taller / Proveedor / Mecánico</label>
-          <input id="oilTaller" placeholder="ej. Taller Central Autorizado">
-        </div>
+      <div style="margin-top:6px">
+        <label for="oilTaller">Taller / Proveedor / Mecánico</label>
+        <input id="oilTaller" placeholder="ej. Taller Central Autorizado">
       </div>
       <div>
         <label for="oilNotas">Observaciones (Filtros cambiados, lubricación de tolva/brazo, costo)</label>
@@ -1169,16 +1153,6 @@ td.n {
           <input id="vehModelo" placeholder="ej. FMX 440 Tolva 15m3, 420F2">
         </div>
         <div>
-          <label for="vehCombustible">Combustible</label>
-          <select id="vehCombustible">
-            <option value="Diésel Pesado">Diésel Pesado</option>
-            <option value="Diésel B5">Diésel B5</option>
-            <option value="Gasolina 95">Gasolina 95</option>
-            <option value="Gasolina 90">Gasolina 90</option>
-            <option value="GLP">GLP</option>
-          </select>
-        </div>
-        <div>
           <label for="vehOdo" id="labelVehOdo">Odómetro Inicial (o Horómetro)</label>
           <input id="vehOdo" type="number" min="0" value="0">
         </div>
@@ -1196,15 +1170,9 @@ td.n {
             <input id="vehUltimoAceiteKm" type="number" min="0" placeholder="0">
           </div>
         </div>
-        <div class="grid" style="grid-template-columns:1fr 1fr;margin-top:6px">
-          <div>
-            <label for="vehIntervaloKm" id="labelVehIntervalo">Intervalo de Cambio (5,000 km o 250 hrs)</label>
-            <input id="vehIntervaloKm" type="number" value="5000">
-          </div>
-          <div>
-            <label for="vehTipoAceite">Tipo / Grado de Aceite</label>
-            <input id="vehTipoAceite" placeholder="ej. 15W-40 CI-4, CAT DEO">
-          </div>
+        <div style="margin-top:6px">
+          <label for="vehIntervaloKm" id="labelVehIntervalo">Intervalo de Cambio (5,000 km o 250 hrs)</label>
+          <input id="vehIntervaloKm" type="number" value="5000">
         </div>
       </div>
 
@@ -1928,14 +1896,12 @@ function bindEvents() {
     toast("Revisión pre-operacional marcada sin fallas");
   };
 
-  // Cálculo en tiempo real de Km/Horas y combustible
+  // Cálculo en tiempo real de Km/Horas
   const updateDiffCalc = () => {
     const ini = Number($("#formKmIni").value) || 0;
     const fin = Number($("#formKmFin").value) || 0;
-    const comb = Number($("#formComb").value) || 0;
     const diff = fin - ini;
     const bDiff = $("#calcDiffBadge");
-    const bRend = $("#calcRendimientoBadge");
 
     const targetUnit = state.user ? (state.user.rol === "admin" ? $("#formUnidad").value : state.user.unidad) : "";
     const isMach = isHeavyMachinery(targetUnit);
@@ -1944,23 +1910,15 @@ function bindEvents() {
     if (fin > 0 && fin >= ini) {
       bDiff.textContent = `Avance: ${diff} ${unitLabel}`;
       bDiff.style.color = "var(--navy)";
-      if (comb > 0) {
-        bRend.textContent = `Rendimiento: ${(diff / comb).toFixed(1)} ${unitLabel}/gal`;
-      } else {
-        bRend.textContent = "";
-      }
     } else if (fin > 0 && fin < ini) {
       bDiff.textContent = "⚠️ El valor final no puede ser menor al inicial";
       bDiff.style.color = "var(--bad)";
-      bRend.textContent = "";
     } else {
       bDiff.textContent = "";
-      bRend.textContent = "";
     }
   };
   $("#formKmIni").oninput = updateDiffCalc;
   $("#formKmFin").oninput = updateDiffCalc;
-  $("#formComb").oninput = updateDiffCalc;
 
   // Cambio de unidad en form
   $("#formUnidad").onchange = () => {
@@ -2011,7 +1969,7 @@ function bindEvents() {
       llegada: $("#formLlegada").value,
       kmIni: ini,
       kmFin: fin,
-      combustible: Number($("#formComb").value) || 0,
+      combustible: 0,
       fallas: fallas,
       destino: $("#formDestino").value.trim(),
       obs: $("#formObs").value.trim(),
@@ -2183,9 +2141,7 @@ function resetFormDefaults() {
 
   $("#formKmIni").value = odo || "";
   $("#formKmFin").value = "";
-  $("#formComb").value = "";
   $("#calcDiffBadge").textContent = "";
-  $("#calcRendimientoBadge").textContent = "";
   $("#currentOdoBadge").textContent = `Último registrado: ${odo} ${isMach ? 'hrs' : 'km'}`;
 
   const badge = $("#unitTypeBadge");
@@ -2253,13 +2209,12 @@ function renderAlerts() {
 function renderKPIs() {
   if (state.user.rol !== "admin") return;
   const regs = state.data.registros || [];
+  const vehs = state.data.vehiculos || [];
   const totalKm = regs.reduce((acc, r) => acc + ((Number(r.kmFin) || 0) - (Number(r.kmIni) || 0)), 0);
-  const totalComb = regs.reduce((acc, r) => acc + (Number(r.combustible) || 0), 0);
   const totalSalidas = regs.length;
-  const avgRend = totalComb > 0 ? (totalKm / totalComb).toFixed(1) : "0.0";
 
   let alertsCount = 0;
-  (state.data.vehiculos || []).forEach(v => {
+  vehs.forEach(v => {
     const s = getOilStatus(v.unidad);
     if (s && (s.cls === "bad" || s.cls === "warn")) alertsCount++;
   });
@@ -2268,17 +2223,12 @@ function renderKPIs() {
     <div class="kpi-card" style="border-left-color: var(--blue);">
       <div class="kpi-title"><span>ACTIVIDAD TOTAL</span><span>📈</span></div>
       <div class="kpi-value">${totalKm.toLocaleString()} km/hrs</div>
-      <div class="kpi-sub">${totalSalidas} comisiones y labores</div>
+      <div class="kpi-sub">${totalSalidas} labores y comisiones</div>
     </div>
-    <div class="kpi-card" style="border-left-color: var(--amber);">
-      <div class="kpi-title"><span>COMBUSTIBLE TOTAL</span><span>⛽</span></div>
-      <div class="kpi-value">${totalComb.toFixed(1)} gal</div>
-      <div class="kpi-sub">Consumo flota y maquinaria</div>
-    </div>
-    <div class="kpi-card" style="border-left-color: var(--ok);">
-      <div class="kpi-title"><span>RENDIMIENTO MEDIO</span><span>⚡</span></div>
-      <div class="kpi-value">${avgRend} km/gal</div>
-      <div class="kpi-sub">Eficiencia operacional</div>
+    <div class="kpi-card" style="border-left-color: var(--navy);">
+      <div class="kpi-title"><span>FLOTA & MAQUINARIA</span><span>🚜</span></div>
+      <div class="kpi-value">${vehs.length}</div>
+      <div class="kpi-sub">Unidades activas registradas</div>
     </div>
     <div class="kpi-card" style="border-left-color: ${alertsCount > 0 ? 'var(--bad)' : 'var(--ok)'};">
       <div class="kpi-title"><span>ALERTAS DE SERVICIO</span><span>🔧</span></div>
@@ -2369,7 +2319,6 @@ function renderTable() {
         <td class="n">${(Number(r.kmIni) || 0).toLocaleString()}</td>
         <td class="n">${(Number(r.kmFin) || 0).toLocaleString()}</td>
         <td class="n"><span class="badge-diff">+${diff.toLocaleString()} ${unitLabel}</span></td>
-        <td class="n">${(Number(r.combustible) || 0).toFixed(1)} gal</td>
         <td style="max-width:220px">${esc(r.destino || "Sin destino")}</td>
         <td style="max-width:260px">
           ${esc(r.obs || "-")}
@@ -2401,7 +2350,6 @@ function openEditRegModal(id) {
   $("#editLlegada").value = r.llegada || "";
   $("#editKmIni").value = r.kmIni;
   $("#editKmFin").value = r.kmFin;
-  $("#editComb").value = r.combustible || 0;
   $("#editDestino").value = r.destino || "";
   $("#editObs").value = r.obs || "";
 
@@ -2436,7 +2384,6 @@ async function handleSaveEditReg(e) {
     llegada: $("#editLlegada").value,
     kmIni: Number($("#editKmIni").value),
     kmFin: Number($("#editKmFin").value),
-    combustible: Number($("#editComb").value) || 0,
     destino: $("#editDestino").value.trim(),
     obs: $("#editObs").value.trim(),
     fallas: fallasActualizadas
@@ -2600,7 +2547,7 @@ function renderMantenimiento() {
             <div><b>Próximo a:</b> <b>${oil.proxKm.toLocaleString()} ${oil.unitLabel}</b></div>
           </div>
           <div style="font-size:11.5px;color:var(--mut);margin-top:6px">
-            Lubricante: <b>${esc(oil.tipoAceite)}</b> | Taller: <b>${esc(oil.taller)}</b>
+            ${oil.taller ? `Taller / Mecánico: <b>${esc(oil.taller)}</b>` : ''}
           </div>
 
           <button class="btn ${isMach ? 'machinery-btn' : 'oil-btn'}" style="margin-top:10px;width:100%" onclick="openOilModal('${esc(u)}')">
@@ -2641,7 +2588,6 @@ function openOilModal(unidad) {
   $("#oilFecha").value = hoyStr();
   $("#oilKm").value = currentOdo;
   $("#oilProxKm").value = currentOdo + interval;
-  $("#oilTipo").value = veh && veh.tipoAceite ? veh.tipoAceite : (isMach ? "15W-40 CI-4 Pesado" : "15W-40 Sintético");
   $("#oilTaller").value = veh && veh.tallerAceite ? veh.tallerAceite : (isMach ? "Taller Pesado Minero" : "Taller Central");
   $("#oilNotas").value = isMach ? "Engrase de pines y verificación de mandos hidráulicos" : "Cambio de aceite y filtro";
 
@@ -2657,12 +2603,11 @@ async function handleSaveOilChange(e) {
   const unidad = $("#oilUnidad").value;
   const fecha = $("#oilFecha").value;
   const km = Number($("#oilKm").value);
-  const tipoAceite = $("#oilTipo").value.trim();
   const taller = $("#oilTaller").value.trim();
   const notas = $("#oilNotas").value.trim();
   const isMach = isHeavyMachinery(unidad);
 
-  const payload = { unidad, fecha, km, tipoAceite, taller, notas };
+  const payload = { unidad, fecha, km, taller, notas };
 
   if (state.isApiMode) {
     try {
@@ -2683,7 +2628,6 @@ async function handleSaveOilChange(e) {
     state.data.vehiculos[vIdx].ultimoCambioAceiteFecha = fecha;
     state.data.vehiculos[vIdx].ultimoCambioAceiteKm = km;
     state.data.vehiculos[vIdx].proximoCambioAceiteKm = km + interval;
-    state.data.vehiculos[vIdx].tipoAceite = tipoAceite;
     state.data.vehiculos[vIdx].tallerAceite = taller;
     if (isMach) {
       state.data.vehiculos[vIdx].ultimoEngraseFecha = fecha;
@@ -2693,7 +2637,7 @@ async function handleSaveOilChange(e) {
   if (!state.data.mantenimiento) state.data.mantenimiento = {};
   state.data.mantenimiento[unidad] = {
     ...state.data.mantenimiento[unidad],
-    tipo: isMach ? `Servicio de Motor Pesado y Engrase` : `Cambio de Aceite (${tipoAceite})`,
+    tipo: isMach ? `Servicio de Motor Pesado y Engrase` : `Cambio de Aceite`,
     proxKm: km + (isMach ? 250 : 5000),
     ultimoCambioFecha: fecha,
     ultimoCambioKm: km,
@@ -2772,7 +2716,7 @@ function renderVehiculos() {
           <span class="category-badge ${isMach ? 'machinery' : 'vehicle'}">${unitBadge}</span>
         </td>
         <td><b>${esc(v.placa)}</b></td>
-        <td>${esc(v.marca || "")} ${esc(v.modelo || "")}<br><small style="color:var(--mut)">${esc(v.combustibleTipo || "Diésel")}</small></td>
+        <td><b>${esc(v.marca || "")}</b> ${esc(v.modelo || "")}</td>
         <td class="n"><b>${oil.currentOdo.toLocaleString()} ${oil.unitLabel}</b></td>
         <td>
           <b>📅 ${esc(oil.fechaUltimo)}</b><br>
@@ -2799,7 +2743,6 @@ function onVehCategoriaChange() {
   $("#labelVehUltimoKm").textContent = isMach ? "Horas o Km del Último Cambio" : "Kilometraje del Último Cambio";
   $("#labelVehIntervalo").textContent = isMach ? "Intervalo de Servicio (ej. 250 hrs)" : "Intervalo de Servicio (5,000 km)";
   $("#vehIntervaloKm").value = isMach ? 250 : 5000;
-  $("#vehTipoAceite").value = isMach ? "15W-40 CI-4 Pesado" : "15W-40 Sintético";
 }
 
 function openVehicleModal() {
@@ -2809,7 +2752,6 @@ function openVehicleModal() {
   $("#vehPlaca").value = "";
   $("#vehMarca").value = "";
   $("#vehModelo").value = "";
-  $("#vehCombustible").value = "Diésel";
   $("#vehOdo").value = 0;
   $("#vehUltimoAceiteFecha").value = hoyStr();
   $("#vehUltimoAceiteKm").value = 0;
@@ -2827,12 +2769,10 @@ function editVehicle(unidad) {
   $("#vehPlaca").value = v.placa;
   $("#vehMarca").value = v.marca || "";
   $("#vehModelo").value = v.modelo || "";
-  $("#vehCombustible").value = v.combustibleTipo || "Diésel";
   $("#vehOdo").value = v.horometroInicial || v.odometroInicial || 0;
   $("#vehUltimoAceiteFecha").value = v.ultimoCambioAceiteFecha || "";
   $("#vehUltimoAceiteKm").value = v.ultimoCambioAceiteKm || 0;
   $("#vehIntervaloKm").value = v.intervaloAceiteKm || (isMach ? 250 : 5000);
-  $("#vehTipoAceite").value = v.tipoAceite || "";
   $("#modalVehiculo").hidden = false;
 }
 
@@ -2847,15 +2787,13 @@ async function handleSaveVehicle(e) {
     placa: $("#vehPlaca").value.trim().toUpperCase(),
     marca: $("#vehMarca").value.trim(),
     modelo: $("#vehModelo").value.trim(),
-    combustibleTipo: $("#vehCombustible").value,
     odometroInicial: Number($("#vehOdo").value) || 0,
     horometroInicial: isMach ? Number($("#vehOdo").value) || 0 : 0,
     tipoMedicion: isMach ? "horas" : "km",
     ultimoCambioAceiteFecha: $("#vehUltimoAceiteFecha").value || hoyStr(),
     ultimoCambioAceiteKm: Number($("#vehUltimoAceiteKm").value) || 0,
     intervaloAceiteKm: Number($("#vehIntervaloKm").value) || (isMach ? 250 : 5000),
-    proximoCambioAceiteKm: (Number($("#vehUltimoAceiteKm").value) || 0) + (Number($("#vehIntervaloKm").value) || (isMach ? 250 : 5000)),
-    tipoAceite: $("#vehTipoAceite").value.trim() || (isMach ? "15W-40 CI-4 Pesado" : "15W-40 Sintético")
+    proximoCambioAceiteKm: (Number($("#vehUltimoAceiteKm").value) || 0) + (Number($("#vehIntervaloKm").value) || (isMach ? 250 : 5000))
   };
 
   if (state.isApiMode) {
@@ -3085,7 +3023,6 @@ function exportExcel() {
       "Inicial": r.kmIni,
       "Final": r.kmFin,
       "Recorrido / Horas": (Number(r.kmFin) || 0) - (Number(r.kmIni) || 0),
-      "Combustible (gal)": Number(r.combustible) || 0,
       "Destino / Frente de Obra": r.destino,
       "Fallas Preoperacionales": (r.fallas || []).join("; ") || "Conforme (Sin fallas)",
       "Observaciones": r.obs
@@ -3104,8 +3041,6 @@ function exportExcel() {
       "Categoría": isMach ? "Maquinaria Pesada" : "Vehículo Liviano",
       "Salidas / Labores": unitRegs.length,
       "Total Recorrido (km/hrs)": sumKm,
-      "Total Combustible (gal)": Number(sumComb.toFixed(1)),
-      "Rendimiento": sumComb > 0 ? Number((sumKm / sumComb).toFixed(1)) : 0,
       "Último Servicio": oil ? oil.fechaUltimo : "-",
       "Registro Último Servicio": oil ? oil.ultimoKm : 0,
       "Próximo Servicio": oil ? oil.proxKm : 0
@@ -3125,7 +3060,7 @@ function exportExcel() {
 
 function exportCsv() {
   const f = getFilteredRecords();
-  const headers = ["Fecha", "Categoría", "Unidad", "Placa", "Conductor/Operador", "Salida", "Llegada", "Inicial", "Final", "Recorrido", "Combustible (gal)", "Destino", "Fallas", "Observaciones"];
+  const headers = ["Fecha", "Categoría", "Unidad", "Placa", "Conductor/Operador", "Salida", "Llegada", "Inicial", "Final", "Recorrido", "Destino", "Fallas", "Observaciones"];
   const q = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
 
   const rows = f.map(x => [
@@ -3139,7 +3074,6 @@ function exportCsv() {
     x.kmIni,
     x.kmFin,
     (Number(x.kmFin) || 0) - (Number(x.kmIni) || 0),
-    x.combustible,
     x.destino,
     (x.fallas || []).join("; "),
     x.obs
