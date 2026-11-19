@@ -54,34 +54,35 @@ function initFirebase() {
   }
 
   try {
-    admin = require('firebase-admin');
+    const { initializeApp, cert, applicationDefault, getApps } = require('firebase-admin/app');
+    const { getDatabase } = require('firebase-admin/database');
     let credential = null;
 
     if (process.env.FIREBASE_SERVICE_ACCOUNT) {
       const sa = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string'
         ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
         : process.env.FIREBASE_SERVICE_ACCOUNT;
-      credential = admin.credential.cert(sa);
+      credential = cert(sa);
     } else {
       const keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH 
         || (fs.existsSync(path.join(__dirname, 'firebase-key.json')) ? path.join(__dirname, 'firebase-key.json') : null)
         || (fs.existsSync(path.join(__dirname, 'serviceAccountKey.json')) ? path.join(__dirname, 'serviceAccountKey.json') : null);
 
       if (keyPath) {
-        credential = admin.credential.cert(require(path.resolve(keyPath)));
+        credential = cert(require(path.resolve(keyPath)));
       } else {
-        credential = admin.credential.applicationDefault();
+        credential = applicationDefault();
       }
     }
 
-    if (!admin.apps.length) {
-      admin.initializeApp({
+    if (!getApps().length) {
+      initializeApp({
         credential,
         databaseURL: dbUrl
       });
     }
 
-    const rtdb = admin.database();
+    const rtdb = getDatabase();
     bitacoraRef = rtdb.ref('bitacora');
     firebaseActive = true;
 
@@ -189,7 +190,7 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const parsedUrl = url.parse(req.url, true);
+  const parsedUrl = new URL(req.url, 'http://localhost');
   const pathname = parsedUrl.pathname;
 
   // --- API ROUTING ---
