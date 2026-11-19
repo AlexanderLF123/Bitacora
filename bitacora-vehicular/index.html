@@ -819,7 +819,7 @@ td.n {
           <!-- Checklist de Inspección 360 adaptado para Vehículos y Maquinaria -->
           <div class="checklist-container">
             <div class="checklist-header">
-              <span id="chkTitleLabel">🔍 Revisión Pre-Operacional del Equipo (marca lo que falle o esté pendiente)</span>
+              <span id="chkTitleLabel">🔍 Revisión Pre Salida (marca lo que falle o esté pendiente)</span>
               <div style="display:flex;gap:6px;align-items:center">
                 <button type="button" class="btn alt" id="btnChkAllOk" style="padding:2px 8px;font-size:11.5px">Todo Conforme ✔️</button>
                 <button type="button" class="btn alt" id="btnOpenConfigChk" style="padding:2px 8px;font-size:11.5px" title="Modificar o agregar puntos de revisión">⚙️ Editar Puntos de Revisión</button>
@@ -1034,7 +1034,7 @@ td.n {
 
       <div class="checklist-container" style="margin-top:14px">
         <div class="checklist-header">
-          <span>🔍 Revisión Pre-Operacional (Marca las fallas detectadas)</span>
+          <span>🔍 Revisión Pre Salida (Marca las fallas detectadas)</span>
           <button type="button" class="btn alt" id="btnEditChkAllOk" style="padding:2px 8px;font-size:11.5px">Sin Fallas (Conforme) ✔️</button>
         </div>
         <div class="chk-grid" id="modalEditChkContainer"></div>
@@ -1098,11 +1098,11 @@ td.n {
   </div>
 </div>
 
-<!-- MODAL: CONFIGURAR PUNTOS DE INSPECCIÓN PRE-OPERACIONAL -->
+<!-- MODAL: CONFIGURAR PUNTOS DE INSPECCIÓN PRE SALIDA -->
 <div class="modal-overlay" id="modalConfigChecklist" hidden>
   <div class="modal-box">
     <div class="card-header">
-      <h2>⚙️ Puntos de Inspección Pre-Operacional</h2>
+      <h2>⚙️ Puntos de Inspección Pre Salida</h2>
       <button class="btn alt" type="button" onclick="closeModal('modalConfigChecklist')">✕</button>
     </div>
     <p style="color:var(--mut);font-size:13px">
@@ -1558,8 +1558,8 @@ function initChecklist(targetUnidad) {
   const isMach = isHeavyMachinery(unidad);
 
   $("#chkTitleLabel").textContent = isMach
-    ? "🚜 Revisión Pre-Operacional de Maquinaria Pesada (Inspección 360°)"
-    : "🚙 Revisión Pre-Operacional del Vehículo (marca lo que falle o esté pendiente)";
+    ? "🚜 Revisión Pre Salida de Maquinaria Pesada (Inspección 360°)"
+    : "🚙 Revisión Pre Salida (marca lo que falle o esté pendiente)";
 
   const c = $("#chkContainer");
   c.innerHTML = items.map((item, idx) => `
@@ -1638,7 +1638,7 @@ function bindEvents() {
   // Checklist Todo Conforme
   $("#btnChkAllOk").onclick = () => {
     $$("#chkContainer input").forEach(ch => ch.checked = false);
-    toast("Revisión pre-operacional conforme (sin fallas)");
+    toast("Revisión pre salida conforme (sin fallas)");
   };
 
   // Botón para editar puntos del checklist
@@ -1647,7 +1647,7 @@ function bindEvents() {
   // Botón en modal edit para Todo Conforme
   $("#btnEditChkAllOk").onclick = () => {
     $$("#modalEditChkContainer input").forEach(ch => ch.checked = false);
-    toast("Revisión pre-operacional marcada sin fallas");
+    toast("Revisión pre salida marcada sin fallas");
   };
 
   // Cálculo en tiempo real de Km/Horas
@@ -2059,7 +2059,7 @@ function renderTable() {
 
     const fallasHtml = (r.fallas && r.fallas.length)
       ? `<br><span class="falla-badge">⚠️ Fallas: ${esc(r.fallas.join(", "))}</span>`
-      : `<br><small style="color:var(--ok);font-weight:600">✔️ Pre-operacional Conforme</small>`;
+      : `<br><small style="color:var(--ok);font-weight:600">✔️ Pre Salida Conforme</small>`;
 
     return `
       <tr>
