@@ -98,6 +98,7 @@ function initFirebase() {
     } else {
       const keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH 
         || (fs.existsSync(path.join(__dirname, 'firebase-key.json')) ? path.join(__dirname, 'firebase-key.json') : null)
+        || (fs.existsSync(path.join(__dirname, 'firebase-key.json.json')) ? path.join(__dirname, 'firebase-key.json.json') : null)
         || (fs.existsSync(path.join(__dirname, 'serviceAccountKey.json')) ? path.join(__dirname, 'serviceAccountKey.json') : null);
 
       if (keyPath) {

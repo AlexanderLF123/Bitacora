@@ -958,6 +958,7 @@ td.n {
                 <th>Placa</th>
                 <th>Marca / Modelo</th>
                 <th style="text-align:right">Odómetro / Horómetro</th>
+                <th>Revisión Técnica</th>
                 <th>Último Cambio de Aceite</th>
                 <th>Próximo Servicio</th>
                 <th style="text-align:center" class="noprint">Acciones</th>
@@ -1151,6 +1152,10 @@ td.n {
         <div>
           <label for="vehModelo">Modelo / Capacidad</label>
           <input id="vehModelo" placeholder="ej. FMX 440 Tolva 15m3, 420F2">
+        </div>
+        <div>
+          <label for="vehRevTecnica">Vencimiento de Revisión Técnica</label>
+          <input id="vehRevTecnica" type="date">
         </div>
         <div>
           <label for="vehOdo" id="labelVehOdo">Odómetro Inicial (o Horómetro)</label>
@@ -1954,6 +1959,26 @@ function renderAlerts() {
           </div>`;
       }
     }
+
+    const veh = (state.data.vehiculos || []).find(v => v.unidad === u);
+    if (veh && veh.revisionTecnica) {
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const [y, m, d] = veh.revisionTecnica.split("-").map(Number);
+      const diff = Math.round((new Date(y, m - 1, d) - hoy) / (1000 * 60 * 60 * 24));
+      if (diff < 0) {
+        html += `
+          <div class="alert-banner bad">
+            <span>🚨 <b>${esc(u)} (${esc(veh.placa)}):</b> Revisión Técnica VENCIDA hace ${-diff} días (Venció el <b>${esc(veh.revisionTecnica)}</b>).</span>
+            <button class="btn alt" style="padding:4px 8px;font-size:11px" onclick="editVehicle('${esc(u)}')">✏️ Actualizar</button>
+          </div>`;
+      } else if (diff <= 30) {
+        html += `
+          <div class="alert-banner warn">
+            <span>⚠️ <b>${esc(u)} (${esc(veh.placa)}):</b> Revisión Técnica por vencer en <b>${diff} días</b> (Vence el <b>${esc(veh.revisionTecnica)}</b>).</span>
+            <button class="btn alt" style="padding:4px 8px;font-size:11px" onclick="editVehicle('${esc(u)}')">✏️ Actualizar</button>
+          </div>`;
+      }
+    }
   });
 
   container.innerHTML = html;
@@ -2256,6 +2281,20 @@ function renderMantenimiento() {
       statusPill = `<span style="background:var(--ok);color:#fff;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700">✔️ AL DÍA</span>`;
     }
 
+    let revTecBadge = `<span style="color:var(--mut);font-size:11.5px">No registrada</span>`;
+    if (veh.revisionTecnica) {
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const [y, mNum, d] = veh.revisionTecnica.split("-").map(Number);
+      const diff = Math.round((new Date(y, mNum - 1, d) - hoy) / (1000 * 60 * 60 * 24));
+      if (diff < 0) {
+        revTecBadge = `<span class="chip" style="background:var(--bad)">🚨 Vencida (${esc(veh.revisionTecnica)})</span>`;
+      } else if (diff <= 30) {
+        revTecBadge = `<span class="chip" style="background:var(--amber)">⚠️ Vence en ${diff}d (${esc(veh.revisionTecnica)})</span>`;
+      } else {
+        revTecBadge = `<span class="chip" style="background:var(--ok)">✔️ Vigente (${esc(veh.revisionTecnica)})</span>`;
+      }
+    }
+
     // Sección específica para Maquinaria Pesada vs Vehículos
     const machSpecificBox = isMach ? `
       <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:10px;margin-top:10px;font-size:12.5px">
@@ -2300,8 +2339,9 @@ function renderMantenimiento() {
             <div><b>Uso con este aceite:</b> <b>${oil.kmRecorridos.toLocaleString()}</b> / ${oil.intervalo.toLocaleString()} ${oil.unitLabel}</div>
             <div><b>Próximo a:</b> <b>${oil.proxKm.toLocaleString()} ${oil.unitLabel}</b></div>
           </div>
-          <div style="font-size:11.5px;color:var(--mut);margin-top:6px">
-            ${oil.taller ? `Taller / Mecánico: <b>${esc(oil.taller)}</b>` : ''}
+          <div style="font-size:11.5px;color:var(--mut);margin-top:6px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px">
+            <span>${oil.taller ? `Taller: <b>${esc(oil.taller)}</b>` : ''}</span>
+            <span>Rev. Técnica: ${revTecBadge}</span>
           </div>
 
           <button class="btn ${isMach ? 'machinery-btn' : 'oil-btn'}" style="margin-top:10px;width:100%" onclick="openOilModal('${esc(u)}')">
@@ -2442,7 +2482,7 @@ function renderVehiculos() {
   const isAdmin = state.user.rol === "admin";
 
   if (!list.length) {
-    tbody.innerHTML = `<tr><td colspan="8" class="empty-state">No hay equipos registrados.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" class="empty-state">No hay equipos registrados.</td></tr>`;
     return;
   }
 
@@ -2461,6 +2501,20 @@ function renderVehiculos() {
       statusPill = `<span class="chip" style="background:var(--ok)">✔️ Al día (${oil.kmRestantes} ${oil.unitLabel})</span>`;
     }
 
+    let revTecBadge = `<span style="color:var(--mut);font-size:12px">No registrada</span>`;
+    if (v.revisionTecnica) {
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const [y, m, d] = v.revisionTecnica.split("-").map(Number);
+      const diff = Math.round((new Date(y, m - 1, d) - hoy) / (1000 * 60 * 60 * 24));
+      if (diff < 0) {
+        revTecBadge = `<span class="chip" style="background:var(--bad)">🚨 Vencida (${esc(v.revisionTecnica)})</span>`;
+      } else if (diff <= 30) {
+        revTecBadge = `<span class="chip" style="background:var(--amber)">⚠️ Vence en ${diff}d (${esc(v.revisionTecnica)})</span>`;
+      } else {
+        revTecBadge = `<span class="chip" style="background:var(--ok)">✔️ Vigente (${esc(v.revisionTecnica)})</span>`;
+      }
+    }
+
     return `
       <tr>
         <td>
@@ -2472,6 +2526,7 @@ function renderVehiculos() {
         <td><b>${esc(v.placa)}</b></td>
         <td><b>${esc(v.marca || "")}</b> ${esc(v.modelo || "")}</td>
         <td class="n"><b>${oil.currentOdo.toLocaleString()} ${oil.unitLabel}</b></td>
+        <td>${revTecBadge}</td>
         <td>
           <b>📅 ${esc(oil.fechaUltimo)}</b><br>
           <small style="color:var(--mut)">A los ${oil.ultimoKm.toLocaleString()} ${oil.unitLabel} (${oil.kmRecorridos.toLocaleString()} ${oil.unitLabel} de uso)</small>
@@ -2506,6 +2561,7 @@ function openVehicleModal() {
   $("#vehPlaca").value = "";
   $("#vehMarca").value = "";
   $("#vehModelo").value = "";
+  $("#vehRevTecnica").value = "";
   $("#vehOdo").value = 0;
   $("#vehUltimoAceiteFecha").value = hoyStr();
   $("#vehUltimoAceiteKm").value = 0;
@@ -2523,6 +2579,7 @@ function editVehicle(unidad) {
   $("#vehPlaca").value = v.placa;
   $("#vehMarca").value = v.marca || "";
   $("#vehModelo").value = v.modelo || "";
+  $("#vehRevTecnica").value = v.revisionTecnica || "";
   $("#vehOdo").value = v.horometroInicial || v.odometroInicial || 0;
   $("#vehUltimoAceiteFecha").value = v.ultimoCambioAceiteFecha || "";
   $("#vehUltimoAceiteKm").value = v.ultimoCambioAceiteKm || 0;
@@ -2541,6 +2598,7 @@ async function handleSaveVehicle(e) {
     placa: $("#vehPlaca").value.trim().toUpperCase(),
     marca: $("#vehMarca").value.trim(),
     modelo: $("#vehModelo").value.trim(),
+    revisionTecnica: $("#vehRevTecnica").value || "",
     odometroInicial: Number($("#vehOdo").value) || 0,
     horometroInicial: isMach ? Number($("#vehOdo").value) || 0 : 0,
     tipoMedicion: isMach ? "horas" : "km",
@@ -2787,12 +2845,14 @@ function exportExcel() {
   const summaryRows = allUnits.map(u => {
     const unitRegs = f.filter(x => x.unidad === u);
     const sumKm = unitRegs.reduce((acc, x) => acc + ((Number(x.kmFin) || 0) - (Number(x.kmIni) || 0)), 0);
-    const sumComb = unitRegs.reduce((acc, x) => acc + (Number(x.combustible) || 0), 0);
     const oil = getOilStatus(u);
     const isMach = isHeavyMachinery(u);
+    const vehObj = (state.data.vehiculos || []).find(x => x.unidad === u);
     return {
       "Unidad": u,
       "Categoría": isMach ? "Maquinaria Pesada" : "Vehículo Liviano",
+      "Placa": vehObj ? vehObj.placa : "",
+      "Revisión Técnica": vehObj && vehObj.revisionTecnica ? vehObj.revisionTecnica : "No registrada",
       "Salidas / Labores": unitRegs.length,
       "Total Recorrido (km/hrs)": sumKm,
       "Último Servicio": oil ? oil.fechaUltimo : "-",
