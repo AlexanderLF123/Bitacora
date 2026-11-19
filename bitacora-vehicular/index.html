@@ -1817,6 +1817,28 @@ document.addEventListener("DOMContentLoaded", async () => {
       sessionStorage.removeItem("BITACORA_ACTIVE_USER");
     }
   }
+
+  // Sincronización en segundo plano y al volver a la pestaña (tiempo real)
+  async function autoSyncFromServer() {
+    if (!state.user || !state.isApiMode) return;
+    try {
+      const res = await fetch("/api/data", { cache: "no-store" });
+      if (res.ok) {
+        const fresh = await res.json();
+        const prevHash = `${state.data.registros?.length || 0}-${state.data.vehiculos?.length || 0}`;
+        const newHash = `${fresh.registros?.length || 0}-${fresh.vehiculos?.length || 0}`;
+        if (prevHash !== newHash) {
+          state.data = fresh;
+          renderAll();
+          if (typeof renderVehiculos === "function") renderVehiculos();
+          if (typeof renderMantenimiento === "function") renderMantenimiento();
+          if (typeof renderCalendar === "function") renderCalendar();
+        }
+      }
+    } catch (_) {}
+  }
+  setInterval(autoSyncFromServer, 10000);
+  window.addEventListener("focus", autoSyncFromServer);
 });
 
 function initChecklist(targetUnidad) {

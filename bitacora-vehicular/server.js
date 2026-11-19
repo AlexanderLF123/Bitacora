@@ -1,40 +1,137 @@
 /**
- * Servidor Local para Bitácora Vehicular
- * Funciona de manera nativa con Node.js (sin necesidad de paquetes npm externos).
+ * Servidor para Bitácora Vehicular
+ * Soporta persistencia local (JSON) y en la nube con Firebase Realtime Database.
  */
+try { require('dotenv').config(); } catch (_) {}
+
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
+let admin = null;
+let bitacoraRef = null;
+let firebaseActive = false;
+
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3050;
 let currentPort = DEFAULT_PORT;
 const DATA_FILE = path.join(__dirname, 'data', 'bitacora.json');
 
-// Cargar o inicializar base de datos
+// Normalizar estructura de datos (asegurar arrays válidos)
+function normalizeData(raw) {
+  if (!raw || typeof raw !== 'object') {
+    return { usuarios: [], vehiculos: [], mantenimiento: {}, registros: [] };
+  }
+  return {
+    usuarios: Array.isArray(raw.usuarios) ? raw.usuarios : (raw.usuarios ? Object.values(raw.usuarios) : []),
+    vehiculos: Array.isArray(raw.vehiculos) ? raw.vehiculos : (raw.vehiculos ? Object.values(raw.vehiculos) : []),
+    mantenimiento: (raw.mantenimiento && typeof raw.mantenimiento === 'object') ? raw.mantenimiento : {},
+    registros: Array.isArray(raw.registros) ? raw.registros : (raw.registros ? Object.values(raw.registros) : [])
+  };
+}
+
+// Cargar o inicializar base de datos local
 function loadData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
       const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-      return JSON.parse(raw);
+      return normalizeData(JSON.parse(raw));
     }
   } catch (err) {
-    console.error('Error al leer base de datos:', err);
+    console.error('Error al leer base de datos local:', err);
   }
   return { usuarios: [], vehiculos: [], mantenimiento: {}, registros: [] };
 }
 
-function saveData(data) {
+let db = loadData();
+
+// Inicializar Firebase Realtime Database si está configurado
+function initFirebase() {
+  const dbUrl = process.env.FIREBASE_DATABASE_URL;
+  if (!dbUrl) {
+    console.log('ℹ️  FIREBASE_DATABASE_URL no configurada. Operando en modo local (data/bitacora.json).');
+    return;
+  }
+
   try {
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    return true;
+    admin = require('firebase-admin');
+    let credential = null;
+
+    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
+      const sa = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string'
+        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
+        : process.env.FIREBASE_SERVICE_ACCOUNT;
+      credential = admin.credential.cert(sa);
+    } else {
+      const keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH 
+        || (fs.existsSync(path.join(__dirname, 'firebase-key.json')) ? path.join(__dirname, 'firebase-key.json') : null)
+        || (fs.existsSync(path.join(__dirname, 'serviceAccountKey.json')) ? path.join(__dirname, 'serviceAccountKey.json') : null);
+
+      if (keyPath) {
+        credential = admin.credential.cert(require(path.resolve(keyPath)));
+      } else {
+        credential = admin.credential.applicationDefault();
+      }
+    }
+
+    if (!admin.apps.length) {
+      admin.initializeApp({
+        credential,
+        databaseURL: dbUrl
+      });
+    }
+
+    const rtdb = admin.database();
+    bitacoraRef = rtdb.ref('bitacora');
+    firebaseActive = true;
+
+    // Escuchar cambios en tiempo real
+    bitacoraRef.on('value', (snapshot) => {
+      const remoteData = snapshot.val();
+      if (remoteData) {
+        db = normalizeData(remoteData);
+      }
+    });
+
+    // Sembrar datos locales si Firebase está vacío en primera ejecución
+    bitacoraRef.once('value').then((snapshot) => {
+      if (!snapshot.exists() || !snapshot.val()) {
+        console.log('⚡ Firebase Realtime Database vacía: migrando datos iniciales locales a Firebase...');
+        bitacoraRef.set(db).catch(e => console.error('Error al sembrar Firebase:', e.message));
+      } else {
+        console.log('🔥 Conectado con éxito a Firebase Realtime Database (Sincronización en tiempo real activa).');
+      }
+    }).catch(err => {
+      console.warn('Advertencia al consultar Firebase Realtime Database:', err.message);
+    });
+
   } catch (err) {
-    console.error('Error al guardar base de datos:', err);
-    return false;
+    console.error('⚠️  No se pudo inicializar Firebase Admin:', err.message);
+    console.log('Continuando en modo archivo local...');
+    firebaseActive = false;
   }
 }
 
-let db = loadData();
+initFirebase();
+
+function saveData(data) {
+  let localOk = false;
+  try {
+    const dir = path.dirname(DATA_FILE);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
+    localOk = true;
+  } catch (err) {
+    console.error('Error al guardar base de datos local:', err);
+  }
+
+  if (firebaseActive && bitacoraRef) {
+    bitacoraRef.set(data).catch(err => {
+      console.error('Error al sincronizar con Firebase Realtime Database:', err.message);
+    });
+  }
+  return localOk;
+}
 
 // Helper para leer body JSON
 function parseJsonBody(req) {
