@@ -1408,8 +1408,8 @@ function toast(msg) {
 function isHeavyMachinery(unidad) {
   const u = String(unidad || "").toLowerCase();
   const veh = (state.data.vehiculos || []).find(v => v.unidad.toLowerCase() === u);
-  if (veh && veh.categoria === "maquinaria") return true;
-  return u.includes("volquete") || u.includes("retroexcavadora") || u.includes("excavadora") || u.includes("tractor") || u.includes("cargador") || u.includes("oruga");
+  if (veh && (veh.categoria === "maquinaria" || veh.tipoMedicion === "horas")) return true;
+  return u.includes("volquete") || u.includes("retroexcavadora") || u.includes("retro") || u.includes("excavadora") || u.includes("tractor") || u.includes("cargador") || u.includes("oruga");
 }
 
 // COLOR DEL CHIP: AZUL PARA VEHÍCULOS (INCLUIDO NISSAN 2012) Y ÁMBAR PARA MAQUINARIA
@@ -1461,7 +1461,7 @@ function getOilStatus(unidad) {
   const proxKm = ultimoKm + intervalo;
   const kmRecorridos = currentOdo - ultimoKm;
   const kmRestantes = proxKm - currentOdo;
-  const unitLabel = isMach && veh.tipoMedicion === "horas" ? "hrs" : "km";
+  const unitLabel = (isMach || veh.tipoMedicion === "horas") ? "hrs" : "km";
 
   let cls = "ok";
   if (kmRestantes <= 0) cls = "bad";
@@ -2385,9 +2385,9 @@ function openOilModal(unidad) {
   $("#oilTaller").value = veh && veh.tallerAceite ? veh.tallerAceite : (isMach ? "Taller Pesado Minero" : "Taller Central");
   $("#oilNotas").value = isMach ? "Engrase de pines y verificación de mandos hidráulicos" : "Cambio de aceite y filtro";
 
-  $("#modalMaintTitle").textContent = isMach ? `🚜 Mantenimiento: ${unidad}` : `🛢️ Cambio de Aceite: ${unidad}`;
-  $("#labelOilKm").textContent = isMach ? "Horómetro / Km al Realizar" : "Kilometraje al Realizar";
-  $("#labelOilProxKm").textContent = `Próximo (+${interval} ${isMach ? 'hrs' : 'km'})`;
+  $("#modalMaintTitle").textContent = isMach ? `🚜 Mantenimiento de Retroexcavadora / Maquinaria: ${unidad}` : `🛢️ Cambio de Aceite: ${unidad}`;
+  $("#labelOilKm").textContent = isMach ? "Horómetro al Realizar (Horas de trabajo acumuladas)" : "Kilometraje al Realizar";
+  $("#labelOilProxKm").textContent = isMach ? `Próximo servicio (+${interval} hrs de trabajo)` : `Próximo (+${interval} km)`;
 
   $("#modalCambioAceite").hidden = false;
 }
@@ -2548,9 +2548,9 @@ function renderVehiculos() {
 function onVehCategoriaChange() {
   const cat = $("#vehCategoria").value;
   const isMach = cat === "maquinaria";
-  $("#labelVehOdo").textContent = isMach ? "Horómetro Inicial (Hrs o Km)" : "Odómetro Inicial (km)";
-  $("#labelVehUltimoKm").textContent = isMach ? "Horas o Km del Último Cambio" : "Kilometraje del Último Cambio";
-  $("#labelVehIntervalo").textContent = isMach ? "Intervalo de Servicio (ej. 250 hrs)" : "Intervalo de Servicio (5,000 km)";
+  $("#labelVehOdo").textContent = isMach ? "Horómetro Inicial (Horas de trabajo)" : "Odómetro Inicial (km)";
+  $("#labelVehUltimoKm").textContent = isMach ? "Horas de trabajo del Último Mantenimiento" : "Kilometraje del Último Cambio";
+  $("#labelVehIntervalo").textContent = isMach ? "Intervalo de Servicio (ej. 250 hrs de trabajo)" : "Intervalo de Servicio (5,000 km)";
   $("#vehIntervaloKm").value = isMach ? 250 : 5000;
 }
 
