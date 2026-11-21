@@ -1,177 +1,184 @@
 /**
- * Servidor para Bitácora Vehicular
- * Soporta persistencia local (JSON) y en la nube con Firebase Realtime Database.
+ * Servidor Local para Bitácora Vehicular
+ * Funciona de manera nativa con Node.js (sin necesidad de paquetes npm externos).
  */
-try { require('dotenv').config(); } catch (_) {}
-
 const http = require('http');
+const https = require('https');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
 
-let admin = null;
-let bitacoraRef = null;
-let firebaseActive = false;
-
 const DEFAULT_PORT = parseInt(process.env.PORT, 10) || 3050;
 let currentPort = DEFAULT_PORT;
 const DATA_FILE = path.join(__dirname, 'data', 'bitacora.json');
+const FIREBASE_URL = process.env.FIREBASE_URL || 'https://bitacora-vehicular-348b6-default-rtdb.firebaseio.com/bitacora.json';
 
-// Filtrar elementos de prueba de fábrica antiguos
-function purgeDemoData(data) {
-  if (!data || typeof data !== 'object') return data;
-  const demoUsers = new Set(['carlos', 'marcos', 'juan', 'raul', 'pedro']);
-  const demoVehicles = new Set(['Unidad 01', 'Unidad 02', 'Nissan 2012', 'Volquete 01', 'Retroexcavadora 01']);
-  const demoRegIds = new Set(['reg-101', 'reg-102', 'reg-103', 'reg-104', 'reg-105']);
-
-  if (Array.isArray(data.usuarios)) {
-    data.usuarios = data.usuarios.filter(u => !demoUsers.has(String(u.usuario || '').toLowerCase()) || u.usuario === 'jushr');
-  }
-  if (Array.isArray(data.vehiculos)) {
-    data.vehiculos = data.vehiculos.filter(v => !demoVehicles.has(v.unidad) || (v.placa !== 'ABC-123' && v.placa !== 'XYZ-789' && v.placa !== 'MNO-456' && v.placa !== 'VOL-550' && v.placa !== 'RET-204'));
-  }
-  if (Array.isArray(data.registros)) {
-    data.registros = data.registros.filter(r => !demoRegIds.has(r.id) && !demoVehicles.has(r.unidad));
-  }
-  if (data.mantenimiento && typeof data.mantenimiento === 'object') {
-    demoVehicles.forEach(v => { delete data.mantenimiento[v]; });
-  }
-  return data;
+// --- FIREBASE REST CLIENT (NATIVO, SIN DEPENDENCIAS NPM) ---
+function readFirebase() {
+  return new Promise((resolve) => {
+    try {
+      const parsed = new URL(FIREBASE_URL);
+      const req = https.get(parsed, { timeout: 10000 }, (res) => {
+        if (res.statusCode < 200 || res.statusCode >= 300) {
+          console.warn(`[Firebase] GET HTTP ${res.statusCode}`);
+          return resolve(null);
+        }
+        let data = '';
+        res.on('data', chunk => { data += chunk; });
+        res.on('end', () => {
+          try {
+            const json = JSON.parse(data);
+            resolve(json);
+          } catch (e) {
+            console.error('[Firebase] Error al parsear JSON recibido:', e.message);
+            resolve(null);
+          }
+        });
+      });
+      req.on('error', (err) => {
+        console.error('[Firebase] Error de red en GET:', err.message);
+        resolve(null);
+      });
+      req.on('timeout', () => {
+        req.destroy();
+        console.warn('[Firebase] Timeout en GET');
+        resolve(null);
+      });
+    } catch (e) {
+      console.error('[Firebase] Error inesperado en readFirebase:', e.message);
+      resolve(null);
+    }
+  });
 }
 
-// Normalizar estructura de datos (asegurar arrays válidos y sin datos demo)
-function normalizeData(raw) {
-  if (!raw || typeof raw !== 'object') {
-    return {
-      apariencia: { logoUrl: 'assets/logo.png', loginBgUrl: 'assets/login-bg.png' },
-      usuarios: [{ id: 'u-admin', usuario: 'jushr', pass: 'jushr2026', nombre: 'Administrador JUSHMRCB', rol: 'admin', unidad: 'Todas', placa: 'Flota General' }],
-      vehiculos: [],
-      mantenimiento: {},
-      registros: []
-    };
-  }
-  const clean = purgeDemoData(raw);
-  return {
-    apariencia: clean.apariencia || { logoUrl: 'assets/logo.png', loginBgUrl: 'assets/login-bg.png' },
-    checklistItems: clean.checklistItems || [],
-    checklistMaquinaria: clean.checklistMaquinaria || [],
-    usuarios: Array.isArray(clean.usuarios) && clean.usuarios.length ? clean.usuarios : [{ id: 'u-admin', usuario: 'jushr', pass: 'jushr2026', nombre: 'Administrador JUSHMRCB', rol: 'admin', unidad: 'Todas', placa: 'Flota General' }],
-    vehiculos: Array.isArray(clean.vehiculos) ? clean.vehiculos : (clean.vehiculos ? Object.values(clean.vehiculos) : []),
-    mantenimiento: (clean.mantenimiento && typeof clean.mantenimiento === 'object') ? clean.mantenimiento : {},
-    registros: Array.isArray(clean.registros) ? clean.registros : (clean.registros ? Object.values(clean.registros) : [])
-  };
+function writeFirebase(data) {
+  return new Promise((resolve) => {
+    try {
+      const payload = JSON.stringify(data);
+      const parsed = new URL(FIREBASE_URL);
+      const options = {
+        hostname: parsed.hostname,
+        path: parsed.pathname + (parsed.search || ''),
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Content-Length': Buffer.byteLength(payload)
+        },
+        timeout: 15000
+      };
+      const req = https.request(options, (res) => {
+        let respData = '';
+        res.on('data', chunk => { respData += chunk; });
+        res.on('end', () => {
+          if (res.statusCode >= 200 && res.statusCode < 300) {
+            console.log(`[Firebase] Datos guardados permanentemente en la nube (${new Date().toLocaleTimeString()}).`);
+            resolve(true);
+          } else {
+            console.warn(`[Firebase] PUT HTTP ${res.statusCode}:`, respData);
+            resolve(false);
+          }
+        });
+      });
+      req.on('error', (err) => {
+        console.error('[Firebase] Error de red en PUT:', err.message);
+        resolve(false);
+      });
+      req.on('timeout', () => {
+        req.destroy();
+        console.warn('[Firebase] Timeout en PUT');
+        resolve(false);
+      });
+      req.write(payload);
+      req.end();
+    } catch (e) {
+      console.error('[Firebase] Error inesperado en writeFirebase:', e.message);
+      resolve(false);
+    }
+  });
 }
 
 // Cargar o inicializar base de datos local
-function loadData() {
+function loadLocalData() {
   try {
     if (fs.existsSync(DATA_FILE)) {
-      const raw = fs.readFileSync(DATA_FILE, 'utf-8');
-      return normalizeData(JSON.parse(raw));
+      let raw = fs.readFileSync(DATA_FILE, 'utf-8');
+      if (raw.charCodeAt(0) === 0xFEFF) {
+        raw = raw.slice(1);
+      }
+      return JSON.parse(raw);
     }
   } catch (err) {
     console.error('Error al leer base de datos local:', err);
   }
-  return { usuarios: [], vehiculos: [], mantenimiento: {}, registros: [] };
+  return { usuarios: [], vehiculos: [], mantenimiento: {}, registros: [], checklistItems: [], checklistMaquinaria: [], apariencia: {} };
 }
 
-let db = loadData();
-
-// Inicializar Firebase Realtime Database si está configurado
-function initFirebase() {
-  const dbUrl = process.env.FIREBASE_DATABASE_URL;
-  if (!dbUrl) {
-    console.log('ℹ️  FIREBASE_DATABASE_URL no configurada. Operando en modo local (data/bitacora.json).');
-    return;
-  }
-
+function saveLocalData(data) {
   try {
-    const { initializeApp, cert, applicationDefault, getApps } = require('firebase-admin/app');
-    const { getDatabase } = require('firebase-admin/database');
-    let credential = null;
-
-    if (process.env.FIREBASE_SERVICE_ACCOUNT) {
-      const sa = typeof process.env.FIREBASE_SERVICE_ACCOUNT === 'string'
-        ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
-        : process.env.FIREBASE_SERVICE_ACCOUNT;
-      credential = cert(sa);
-    } else {
-      const keyPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH 
-        || (fs.existsSync(path.join(__dirname, 'firebase-key.json')) ? path.join(__dirname, 'firebase-key.json') : null)
-        || (fs.existsSync(path.join(__dirname, 'firebase-key.json.json')) ? path.join(__dirname, 'firebase-key.json.json') : null)
-        || (fs.existsSync(path.join(__dirname, 'serviceAccountKey.json')) ? path.join(__dirname, 'serviceAccountKey.json') : null);
-
-      if (keyPath) {
-        credential = cert(require(path.resolve(keyPath)));
-      } else {
-        credential = applicationDefault();
-      }
-    }
-
-    if (!getApps().length) {
-      initializeApp({
-        credential,
-        databaseURL: dbUrl
-      });
-    }
-
-    const rtdb = getDatabase();
-    bitacoraRef = rtdb.ref('bitacora');
-    firebaseActive = true;
-
-    // Escuchar cambios en tiempo real
-    bitacoraRef.on('value', (snapshot) => {
-      const remoteData = snapshot.val();
-      if (remoteData) {
-        db = normalizeData(remoteData);
-        // Si Firebase contenía registros o usuarios demo antiguos, limpiarlos en la nube
-        const rawStr = JSON.stringify(remoteData);
-        if (rawStr.includes('u-pedro') || rawStr.includes('ABC-123') || rawStr.includes('pedro castillo')) {
-          console.log('🧹 Datos de prueba detectados en Firebase: purgando automáticamente...');
-          bitacoraRef.set(db).catch(e => console.error('Error al purgar Firebase:', e.message));
-        }
-      }
-    });
-
-    // Sembrar datos locales si Firebase está vacío en primera ejecución
-    bitacoraRef.once('value').then((snapshot) => {
-      if (!snapshot.exists() || !snapshot.val()) {
-        console.log('⚡ Firebase Realtime Database vacía: migrando datos iniciales locales a Firebase...');
-        bitacoraRef.set(db).catch(e => console.error('Error al sembrar Firebase:', e.message));
-      } else {
-        console.log('🔥 Conectado con éxito a Firebase Realtime Database (Sincronización en tiempo real activa).');
-      }
-    }).catch(err => {
-      console.warn('Advertencia al consultar Firebase Realtime Database:', err.message);
-    });
-
-  } catch (err) {
-    console.error('⚠️  No se pudo inicializar Firebase Admin:', err.message);
-    console.log('Continuando en modo archivo local...');
-    firebaseActive = false;
-  }
-}
-
-initFirebase();
-
-function saveData(data) {
-  let localOk = false;
-  try {
-    const dir = path.dirname(DATA_FILE);
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8');
-    localOk = true;
+    return true;
   } catch (err) {
     console.error('Error al guardar base de datos local:', err);
+    return false;
   }
-
-  if (firebaseActive && bitacoraRef) {
-    bitacoraRef.set(data).catch(err => {
-      console.error('Error al sincronizar con Firebase Realtime Database:', err.message);
-    });
-  }
-  return localOk;
 }
+
+let db = loadLocalData();
+
+// Sincronización continua con Firebase
+let isSavingToFirebase = false;
+let pendingFirebaseSave = false;
+
+function saveData(data) {
+  // 1. Guardado inmediato en disco local
+  saveLocalData(data);
+
+  // 2. Sincronización asíncrona a Firebase en segundo plano
+  if (isSavingToFirebase) {
+    pendingFirebaseSave = true;
+    return true;
+  }
+  isSavingToFirebase = true;
+  writeFirebase(data).finally(() => {
+    isSavingToFirebase = false;
+    if (pendingFirebaseSave) {
+      pendingFirebaseSave = false;
+      saveData(db);
+    }
+  });
+  return true;
+}
+
+// Inicialización asíncrona de Firebase al arrancar el servidor
+async function initFirebaseSync() {
+  console.log('[Firebase] Conectando con Firebase Realtime Database...');
+  const remoteData = await readFirebase();
+  if (remoteData && typeof remoteData === 'object' && (Array.isArray(remoteData.usuarios) || Array.isArray(remoteData.vehiculos))) {
+    console.log(`[Firebase] Sincronización exitosa desde la nube:`);
+    console.log(` - Registros: ${(remoteData.registros || []).length}`);
+    console.log(` - Vehículos: ${(remoteData.vehiculos || []).length}`);
+    console.log(` - Usuarios: ${(remoteData.usuarios || []).length}`);
+    db = {
+      ...db,
+      ...remoteData,
+      usuarios: Array.isArray(remoteData.usuarios) ? remoteData.usuarios : (db.usuarios || []),
+      vehiculos: Array.isArray(remoteData.vehiculos) ? remoteData.vehiculos : (db.vehiculos || []),
+      registros: Array.isArray(remoteData.registros) ? remoteData.registros : (db.registros || []),
+      mantenimiento: (remoteData.mantenimiento && typeof remoteData.mantenimiento === 'object') ? remoteData.mantenimiento : (db.mantenimiento || {}),
+      checklistItems: remoteData.checklistItems || db.checklistItems || [],
+      checklistMaquinaria: remoteData.checklistMaquinaria || db.checklistMaquinaria || [],
+      apariencia: remoteData.apariencia || db.apariencia || {}
+    };
+    saveLocalData(db);
+  } else {
+    console.log('[Firebase] Base de datos vacía o inicializando. Subiendo copia inicial a Firebase...');
+    await writeFirebase(db);
+    console.log('[Firebase] Datos iniciales sincronizados en la nube.');
+  }
+}
+
+// Iniciar sincronización de inmediato
+initFirebaseSync();
 
 // Helper para leer body JSON
 function parseJsonBody(req) {
@@ -229,7 +236,7 @@ const server = http.createServer(async (req, res) => {
     return res.end();
   }
 
-  const parsedUrl = new URL(req.url, 'http://localhost');
+  const parsedUrl = url.parse(req.url, true);
   const pathname = parsedUrl.pathname;
 
   // --- API ROUTING ---
@@ -449,7 +456,7 @@ const server = http.createServer(async (req, res) => {
         if (!db.mantenimiento) db.mantenimiento = {};
         db.mantenimiento[unidad] = {
           ...db.mantenimiento[unidad],
-          tipo: 'Cambio de Aceite',
+          tipo: `Cambio de Aceite (${tipoAceite || 'Sintético'})`,
           proxKm: proxAceite,
           taller: taller || (db.mantenimiento[unidad] && db.mantenimiento[unidad].taller) || '',
           ultimoCambioFecha: fechaVal,
@@ -480,9 +487,40 @@ const server = http.createServer(async (req, res) => {
         return sendJson(res, 200, { ok: true, apariencia: db.apariencia });
       }
 
-      // Sincronización (No-op para evitar reinyección de datos obsoletos)
+      // Sincronización y fusión de datos recuperados
       if (pathname === '/api/sync/merge' && req.method === 'POST') {
-        return sendJson(res, 200, { ok: true, message: 'Operación deshabilitada para proteger datos reales' });
+        const payload = await parseJsonBody(req);
+        let changes = false;
+        if (Array.isArray(payload.registros)) {
+          payload.registros.forEach(r => {
+            if (!db.registros.some(x => x.id === r.id)) {
+              db.registros.unshift(r);
+              changes = true;
+            }
+          });
+        }
+        if (Array.isArray(payload.vehiculos)) {
+          payload.vehiculos.forEach(v => {
+            if (!db.vehiculos.some(x => x.unidad.toLowerCase() === v.unidad.toLowerCase())) {
+              db.vehiculos.push(v);
+              changes = true;
+            }
+          });
+        }
+        if (Array.isArray(payload.usuarios)) {
+          payload.usuarios.forEach(u => {
+            if (!db.usuarios.some(x => x.usuario.toLowerCase() === u.usuario.toLowerCase())) {
+              db.usuarios.push(u);
+              changes = true;
+            }
+          });
+        }
+        if (payload.mantenimiento) {
+          db.mantenimiento = { ...db.mantenimiento, ...payload.mantenimiento };
+          changes = true;
+        }
+        if (changes) saveData(db);
+        return sendJson(res, 200, { ok: true, registros: db.registros.length });
       }
 
       // Backup & Restore
