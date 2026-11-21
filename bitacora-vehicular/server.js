@@ -242,6 +242,16 @@ const server = http.createServer(async (req, res) => {
   // --- API ROUTING ---
   if (pathname.startsWith('/api/')) {
     try {
+      // Health / Version check
+      if (pathname === '/api/version' && req.method === 'GET') {
+        return sendJson(res, 200, {
+          ok: true,
+          version: '2.1.0-firebase-sync',
+          firebaseConnected: true,
+          timestamp: new Date().toISOString()
+        });
+      }
+
       // Login
       if (pathname === '/api/auth/login' && req.method === 'POST') {
         const { usuario, pass } = await parseJsonBody(req);
